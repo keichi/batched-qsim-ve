@@ -5,10 +5,10 @@
 
 using UINT = unsigned int;
 using ITYPE = unsigned long long;
-using CTYPE = std::complex<double>;
 
-void update_with_RX_batched(std::vector<CTYPE> &state, UINT BATCH_SIZE, UINT n,
-                            double angle, UINT target)
+void update_with_RX_batched(std::vector<double> &state_r,
+                            std::vector<double> &state_i, UINT BATCH_SIZE,
+                            UINT n, double angle, UINT target)
 {
     double angle_half = angle / 2, sin_half = std::sin(angle_half),
            cos_half = std::cos(angle_half);
@@ -19,25 +19,35 @@ void update_with_RX_batched(std::vector<CTYPE> &state, UINT BATCH_SIZE, UINT n,
         for (int sample = 0; sample < BATCH_SIZE; sample++) {
             ITYPE j = i | (1ULL << target);
 
-            CTYPE tmp_i = state[sample + i * BATCH_SIZE];
-            CTYPE tmp_j = state[sample + j * BATCH_SIZE];
+            double tmp_i_r = state_r[sample + i * BATCH_SIZE];
+            double tmp_i_i = state_i[sample + i * BATCH_SIZE];
+            double tmp_j_r = state_r[sample + j * BATCH_SIZE];
+            double tmp_j_i = state_i[sample + j * BATCH_SIZE];
 
-            state[sample + i * BATCH_SIZE] =
-                cos_half * tmp_i + CTYPE(0, 1) * sin_half * tmp_j;
-            state[sample + j * BATCH_SIZE] =
-                cos_half * tmp_j + CTYPE(0, 1) * sin_half * tmp_i;
+            // state[i] = cos(t/2) * state[i] + i * sin(t/2) * state[j]
+            state_r[sample + i * BATCH_SIZE] =
+                cos_half * tmp_i_r - sin_half * tmp_j_i;
+            state_i[sample + i * BATCH_SIZE] =
+                cos_half * tmp_i_i + sin_half * tmp_j_r;
+
+            // state[j] = -i * sin(t/2) * state[i] + i * cos(t/2) * state[j]
+            state_r[sample + j * BATCH_SIZE] =
+                -sin_half * tmp_i_i + cos_half * tmp_j_r;
+            state_i[sample + j * BATCH_SIZE] =
+                sin_half * tmp_i_r + cos_half * tmp_j_i;
         }
     }
 }
 
-void run_single_batch(std::vector<CTYPE> &state, UINT BATCH_SIZE, UINT N_QUBITS,
-                      UINT DEPTH, std::mt19937 &engine,
+void run_single_batch(std::vector<double> &state_r,
+                      std::vector<double> &state_i, UINT BATCH_SIZE,
+                      UINT N_QUBITS, UINT DEPTH, std::mt19937 &engine,
                       std::uniform_real_distribution<double> &dist)
 {
     for (int d = 0; d < DEPTH; d++) {
         for (int i = 0; i < N_QUBITS; i++) {
-            update_with_RX_batched(state, BATCH_SIZE, N_QUBITS, dist(engine),
-                                   i);
+            update_with_RX_batched(state_r, state_i, BATCH_SIZE, N_QUBITS,
+                                   dist(engine), i);
         }
     }
 }
@@ -54,18 +64,21 @@ int main(int argc, char *argv[])
     std::mt19937 engine(seed_gen());
     std::uniform_real_distribution<double> dist(0.0, M_PI);
     std::vector<double> durations;
-    std::vector<CTYPE> state((1ULL << N_QUBITS) * BATCH_SIZE);
+    std::vector<double> state_r((1ULL << N_QUBITS) * BATCH_SIZE);
+    std::vector<double> state_i((1ULL << N_QUBITS) * BATCH_SIZE);
 
     // Warmup run
     for (int batch = 0; batch < N_SAMPLES; batch += BATCH_SIZE) {
-        run_single_batch(state, BATCH_SIZE, N_QUBITS, DEPTH, engine, dist);
+        run_single_batch(state_r, state_i, BATCH_SIZE, N_QUBITS, DEPTH, engine,
+                         dist);
     }
 
     for (int trial = 0; trial < N_TRIALS; trial++) {
         auto start_time = std::chrono::high_resolution_clock::now();
 
         for (int batch = 0; batch < N_SAMPLES; batch += BATCH_SIZE) {
-            run_single_batch(state, BATCH_SIZE, N_QUBITS, DEPTH, engine, dist);
+            run_single_batch(state_r, state_i, BATCH_SIZE, N_QUBITS, DEPTH,
+                             engine, dist);
         }
 
         auto end_time = std::chrono::high_resolution_clock::now();
@@ -86,7 +99,7 @@ int main(int argc, char *argv[])
     }
     variance = variance / N_TRIALS;
 
-    std::cout << average << "±" << std::sqrt(variance) << std::endl;
+    std::cout << average << std::endl;
 
     return 0;
 }
