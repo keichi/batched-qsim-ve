@@ -1,6 +1,7 @@
 #pragma _NEC options "-O4 -finline-functions -report-all"
 
 #include <cmath>
+// #include <iostream>
 
 #include "gate.hpp"
 
@@ -8,14 +9,14 @@ void apply_single_qubit_gate(std::vector<double> &state_re, std::vector<double> 
                              UINT BATCH_SIZE, UINT n, const double matrix_re[2][2],
                              const double matrix_im[2][2], UINT target)
 {
+    ITYPE mask = 1ULL << target;
+    ITYPE lo_mask = mask - 1;
+    ITYPE hi_mask = ~lo_mask;
+
 #pragma omp parallel for
     for (ITYPE i = 0; i < 1ULL << (n - 1); i++) {
-        ITYPE mask = 1ULL << target;
-        ITYPE mask_lo = mask - 1;
-        ITYPE mask_hi = ~mask_lo;
-
-        ITYPE i0 =  ((i & mask_hi) << 1) | (i & mask_lo);
-        ITYPE i1 =  i0 | mask;
+        ITYPE i0 = ((i & hi_mask) << 1) | (i & lo_mask);
+        ITYPE i1 = i0 | mask;
 
 #pragma omp simd
         for (int sample = 0; sample < BATCH_SIZE; sample++) {
@@ -45,14 +46,30 @@ void apply_single_qubit_gate(std::vector<double> &state_re, std::vector<double> 
 
 void apply_two_qubit_gate(std::vector<double> &state_re, std::vector<double> &state_im,
                           UINT BATCH_SIZE, UINT n, const double matrix_re[4][4],
-                          const double matrix_im[4][4], UINT target)
+                          const double matrix_im[4][4], UINT target, UINT control)
 {
+    ITYPE target_mask = 1ULL << target;
+    ITYPE control_mask = 1ULL << control;
+
+    UINT min_qubit_index = std::min(target, control);
+    UINT max_qubit_index = std::max(target, control);
+    ITYPE min_qubit_mask = 1ULL << min_qubit_index;
+    ITYPE max_qubit_mask = 1ULL << (max_qubit_index - 1);
+    ITYPE lo_mask = min_qubit_mask - 1;
+    ITYPE mid_mask = (max_qubit_mask - 1) ^ lo_mask;
+    ITYPE hi_mask = ~(max_qubit_mask - 1);
+
+    // std::cout << "control=" << control << " target=" << target << std::endl;
+
 #pragma omp parallel for
-    for (ITYPE i0 = 0; i0 < 1ULL << (n - 1); i0++) {
-        ITYPE i00 = i0 | (1ULL << target);
-        ITYPE i01 = i0 | (1ULL << target);
-        ITYPE i10 = i0 | (1ULL << target);
-        ITYPE i11 = i0 | (1ULL << target);
+    for (ITYPE i = 0; i < 1ULL << (n - 2); i++) {
+        ITYPE i00 = ((i & hi_mask) << 2) | ((i & mid_mask) << 1) | ((i & lo_mask));
+        ITYPE i01 = i00 | target_mask;
+        ITYPE i10 = i00 | control_mask;
+        ITYPE i11 = i00 | control_mask | target_mask;
+
+        // std::cout << "(i00, i01, i10, i11): " << i00 << ", " << i01 << ", " << i10 << ", " << i11
+        //           << std::endl;
 
 #pragma omp simd
         for (int sample = 0; sample < BATCH_SIZE; sample++) {
@@ -114,6 +131,16 @@ void apply_two_qubit_gate(std::vector<double> &state_re, std::vector<double> &st
     }
 }
 
+void apply_h_gate(std::vector<double> &state_re, std::vector<double> &state_im, UINT BATCH_SIZE,
+                  UINT n, UINT target)
+{
+    double inv_sqrt2 = 1 / std::sqrt(2);
+    double matrix_re[2][2] = {{inv_sqrt2, inv_sqrt2}, {inv_sqrt2, -inv_sqrt2}};
+    double matrix_im[2][2] = {{0, 0}, {0, 0}};
+
+    apply_single_qubit_gate(state_re, state_im, BATCH_SIZE, n, matrix_re, matrix_im, target);
+}
+
 void apply_rx_gate(std::vector<double> &state_re, std::vector<double> &state_im, UINT BATCH_SIZE,
                    UINT n, double angle, UINT target)
 {
@@ -121,4 +148,13 @@ void apply_rx_gate(std::vector<double> &state_re, std::vector<double> &state_im,
     double matrix_im[2][2] = {{0, -std::sin(angle / 2)}, {-std::sin(angle / 2), 0}};
 
     apply_single_qubit_gate(state_re, state_im, BATCH_SIZE, n, matrix_re, matrix_im, target);
+}
+
+void apply_cnot_gate(std::vector<double> &state_re, std::vector<double> &state_im, UINT BATCH_SIZE,
+                     UINT n, UINT target, UINT control)
+{
+    double matrix_re[4][4] = {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, -1}};
+    double matrix_im[4][4] = {{0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}};
+
+    apply_two_qubit_gate(state_re, state_im, BATCH_SIZE, n, matrix_re, matrix_im, target, control);
 }
