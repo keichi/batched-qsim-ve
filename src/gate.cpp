@@ -9,8 +9,13 @@ void apply_single_qubit_gate(std::vector<double> &state_re, std::vector<double> 
                              const double matrix_im[2][2], UINT target)
 {
 #pragma omp parallel for
-    for (ITYPE i0 = 0; i0 < 1ULL << (n - 1); i0++) {
-        ITYPE i1 = i0 | (1ULL << target);
+    for (ITYPE i = 0; i < 1ULL << (n - 1); i++) {
+        ITYPE mask = 1ULL << target;
+        ITYPE mask_lo = mask - 1;
+        ITYPE mask_hi = ~mask_lo;
+
+        ITYPE i0 =  ((i & mask_hi) << 1) | (i & mask_lo);
+        ITYPE i1 =  i0 | mask;
 
 #pragma omp simd
         for (int sample = 0; sample < BATCH_SIZE; sample++) {
