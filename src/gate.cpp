@@ -1,6 +1,8 @@
-#include "gate.hpp"
+#pragma _NEC options "-O4 -finline-functions -report-all"
 
 #include <cmath>
+
+#include "gate.hpp"
 
 void apply_single_qubit_gate(std::vector<double> &state_re, std::vector<double> &state_im,
                              UINT BATCH_SIZE, UINT n, const double matrix_re[2][2],

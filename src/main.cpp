@@ -2,6 +2,8 @@
 #include <iostream>
 #include <random>
 
+#include <cxxopts.hpp>
+
 #include "gate.hpp"
 
 void run_single_batch(std::vector<double> &state_re, std::vector<double> &state_im, UINT BATCH_SIZE,
@@ -17,11 +19,23 @@ void run_single_batch(std::vector<double> &state_re, std::vector<double> &state_
 
 int main(int argc, char *argv[])
 {
-    const int N_SAMPLES = std::atoi(argv[2]);
-    const int DEPTH = 10;
-    const int N_QUBITS = std::atoi(argv[1]);
-    const int BATCH_SIZE = std::atoi(argv[2]);
-    const int N_TRIALS = 10;
+    cxxopts::Options options("batched-qsim-ve", "Batched quantum circuit simulator for VE");
+    // clang-format off
+    options.add_options()
+        ("samples", "# of samples", cxxopts::value<int>()->default_value("1000"))
+        ("depth", "Depth of the circuit", cxxopts::value<int>()->default_value("10"))
+        ("qubits", "# of qubits", cxxopts::value<int>()->default_value("10"))
+        ("batch-size", "Batch size", cxxopts::value<int>()->default_value("1000"))
+        ("trials", "# of trials", cxxopts::value<int>()->default_value("10"));
+    // clang-format on
+
+    auto result = options.parse(argc, argv);
+
+    const int N_SAMPLES = result["samples"].as<int>();
+    const int DEPTH = result["depth"].as<int>();
+    const int N_QUBITS = result["qubits"].as<int>();
+    const int BATCH_SIZE = result["batch-size"].as<int>();
+    const int N_TRIALS = result["trials"].as<int>();
 
     std::random_device seed_gen;
     std::mt19937 engine(seed_gen());
