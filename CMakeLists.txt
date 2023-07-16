@@ -28,6 +28,6 @@ enable_testing()
 include(${doctest_SOURCE_DIR}/scripts/cmake/doctest.cmake)
 
 add_executable(qsim-test src/test.cpp src/gate.cpp)
-target_link_libraries(qsim-test doctest)
+target_link_libraries(qsim-test doctest OpenMP::OpenMP_CXX)
 
 doctest_discover_tests(qsim-test)

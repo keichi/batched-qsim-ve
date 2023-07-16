@@ -1,5 +1,6 @@
 #pragma _NEC options "-O4 -finline-functions -report-all"
 
+#include <algorithm>
 #include <cmath>
 // #include <iostream>
 
