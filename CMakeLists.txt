@@ -12,5 +12,5 @@ FetchContent_MakeAvailable(argparse)
 
 find_package(OpenMP REQUIRED)
 
-add_executable(qsim-bench src/main.cpp)
+add_executable(qsim-bench src/main.cpp src/gate.cpp)
 target_link_libraries(qsim-bench argparse OpenMP::OpenMP_CXX)
