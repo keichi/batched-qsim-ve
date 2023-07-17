@@ -14,10 +14,22 @@ void apply_two_qubit_gate(std::vector<double> &state_re, std::vector<double> &st
                           const double matrix_im[4][4], UINT target);
 
 void apply_h_gate(std::vector<double> &state_re, std::vector<double> &state_im, UINT BATCH_SIZE,
-                   UINT n, UINT target);
+                  UINT n, UINT target);
 
 void apply_rx_gate(std::vector<double> &state_re, std::vector<double> &state_im, UINT BATCH_SIZE,
                    UINT n, double angle, UINT target);
 
+void apply_sx_gate(std::vector<double> &state_re, std::vector<double> &state_im, UINT BATCH_SIZE,
+                   UINT n, UINT target);
+
+void apply_sy_gate(std::vector<double> &state_re, std::vector<double> &state_im, UINT BATCH_SIZE,
+                   UINT n, UINT target);
+
+void apply_t_gate(std::vector<double> &state_re, std::vector<double> &state_im, UINT BATCH_SIZE,
+                  UINT n, UINT target);
+
 void apply_cnot_gate(std::vector<double> &state_re, std::vector<double> &state_im, UINT BATCH_SIZE,
+                     UINT n, UINT target, UINT control);
+
+void apply_cz_gate(std::vector<double> &state_re, std::vector<double> &state_im, UINT BATCH_SIZE,
                    UINT n, UINT target, UINT control);

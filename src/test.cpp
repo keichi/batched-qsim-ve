@@ -74,7 +74,7 @@ TEST_CASE("CZ gate")
 
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < i; j++) {
-            apply_cnot_gate(state_re, state_im, BATCH_SIZE, N, j, i);
+            apply_cz_gate(state_re, state_im, BATCH_SIZE, N, j, i);
         }
     }
 
