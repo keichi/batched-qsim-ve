@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <cmath>
-// #include <iostream>
 
 #include "gate.hpp"
 
@@ -41,6 +40,53 @@ void apply_single_qubit_gate(std::vector<double> &state_re, std::vector<double> 
                 matrix_re[1][0] * tmp0_im + matrix_im[1][0] * tmp0_re +
                 matrix_re[1][1] * tmp1_im + matrix_im[1][1] * tmp1_re;
             // clang-format on
+        }
+    }
+}
+
+void apply_single_qubit_gate_soa1(std::vector<std::complex<double>> &state, UINT BATCH_SIZE, UINT n,
+                                  const std::complex<double> matrix[2][2], UINT target)
+{
+    ITYPE mask = 1ULL << target;
+    ITYPE lo_mask = mask - 1;
+    ITYPE hi_mask = ~lo_mask;
+
+#pragma omp parallel for
+    for (ITYPE i = 0; i < 1ULL << (n - 1); i++) {
+        ITYPE i0 = ((i & hi_mask) << 1) | (i & lo_mask);
+        ITYPE i1 = i0 | mask;
+
+#pragma omp simd
+        for (int sample = 0; sample < BATCH_SIZE; sample++) {
+            std::complex<double> tmp0 = state[sample + i0 * BATCH_SIZE];
+            std::complex<double> tmp1 = state[sample + i1 * BATCH_SIZE];
+
+            state[sample + i0 * BATCH_SIZE] = matrix[0][0] * tmp0 + matrix[0][1] * tmp1;
+            state[sample + i1 * BATCH_SIZE] = matrix[1][0] * tmp0 + matrix[1][1] * tmp1;
+        }
+    }
+}
+
+void apply_single_qubit_gate_aos(std::vector<std::complex<double>> &state, UINT BATCH_SIZE, UINT n,
+                                 const std::complex<double> matrix[2][2], UINT target)
+{
+    ITYPE mask = 1ULL << target;
+    ITYPE lo_mask = mask - 1;
+    ITYPE hi_mask = ~lo_mask;
+
+#pragma omp parallel for
+    for (int sample = 0; sample < BATCH_SIZE; sample++) {
+
+#pragma omp simd
+        for (ITYPE i = 0; i < 1ULL << (n - 1); i++) {
+            ITYPE i0 = ((i & hi_mask) << 1) | (i & lo_mask);
+            ITYPE i1 = i0 | mask;
+
+            std::complex<double> tmp0 = state[i0 + sample * (1 << n)];
+            std::complex<double> tmp1 = state[i1 + sample * (1 << n)];
+
+            state[i0 + sample * (1 << n)] = matrix[0][0] * tmp0 + matrix[0][1] * tmp1;
+            state[i0 + sample * (1 << n)] = matrix[1][0] * tmp0 + matrix[1][1] * tmp1;
         }
     }
 }
@@ -150,6 +196,29 @@ void apply_rx_gate(std::vector<double> &state_re, std::vector<double> &state_im,
 
     apply_single_qubit_gate(state_re, state_im, BATCH_SIZE, n, matrix_re, matrix_im, target);
 }
+
+void apply_rx_gate_soa1(std::vector<std::complex<double>> &state, UINT BATCH_SIZE, UINT n,
+                        double angle, UINT target)
+{
+    std::complex<double> matrix[2][2] = {{std::complex<double>(std::cos(angle / 2), 0),
+                                          std::complex<double>(0, -std::sin(angle / 2))},
+                                         {std::complex<double>(-std::sin(angle / 2), 0),
+                                          std::complex<double>(std::cos(angle / 2), 0)}};
+
+    apply_single_qubit_gate_soa1(state, BATCH_SIZE, n, matrix, target);
+}
+
+void apply_rx_gate_aos(std::vector<std::complex<double>> &state, UINT BATCH_SIZE, UINT n,
+                       double angle, UINT target)
+{
+    std::complex<double> matrix[2][2] = {{std::complex<double>(std::cos(angle / 2), 0),
+                                          std::complex<double>(0, -std::sin(angle / 2))},
+                                         {std::complex<double>(-std::sin(angle / 2), 0),
+                                          std::complex<double>(std::cos(angle / 2), 0)}};
+
+    apply_single_qubit_gate_aos(state, BATCH_SIZE, n, matrix, target);
+}
+
 
 void apply_sx_gate(std::vector<double> &state_re, std::vector<double> &state_im, UINT BATCH_SIZE,
                    UINT n, UINT target)
