@@ -78,6 +78,31 @@ void apply_single_qubit_gate_aos(std::vector<std::complex<double>> &state, UINT 
 #pragma omp parallel for
     for (int sample = 0; sample < BATCH_SIZE; sample++) {
 
+        for (ITYPE i = 0; i < mask; i++) {
+#pragma omp simd
+            for (ITYPE i0 = i; i0 < 1 << n; i0 += (mask << 1)) {
+                ITYPE i1 = i0 + mask;
+
+                std::complex<double> tmp0 = state[i0 + sample * (1 << n)];
+                std::complex<double> tmp1 = state[i1 + sample * (1 << n)];
+
+                state[i0 + sample * (1 << n)] = matrix[0][0] * tmp0 + matrix[0][1] * tmp1;
+                state[i1 + sample * (1 << n)] = matrix[1][0] * tmp0 + matrix[1][1] * tmp1;
+            }
+        }
+    }
+}
+#endif
+#if 0
+// Contiguous implementation
+void apply_single_qubit_gate_aos(std::vector<std::complex<double>> &state, UINT BATCH_SIZE, UINT n,
+                                 const std::complex<double> matrix[2][2], UINT target)
+{
+    ITYPE mask = 1ULL << target;
+
+#pragma omp parallel for
+    for (int sample = 0; sample < BATCH_SIZE; sample++) {
+
         for (ITYPE i = 0; i < 1ULL << n; i += (mask << 1)) {
 #pragma omp simd
             for (ITYPE i0 = i; i0 < i + mask; i0++) {
@@ -92,7 +117,8 @@ void apply_single_qubit_gate_aos(std::vector<std::complex<double>> &state, UINT 
         }
     }
 }
-#else
+#endif
+#if 1
 // Gather-Scatter implementation
 void apply_single_qubit_gate_aos(std::vector<std::complex<double>> &state, UINT BATCH_SIZE, UINT n,
                                  const std::complex<double> matrix[2][2], UINT target)
