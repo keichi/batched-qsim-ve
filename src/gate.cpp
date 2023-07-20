@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+// #include <iostream>
 
 #include "gate.hpp"
 
@@ -67,6 +68,32 @@ void apply_single_qubit_gate_soa1(std::vector<std::complex<double>> &state, UINT
     }
 }
 
+#if 0
+// Strided implementation
+void apply_single_qubit_gate_aos(std::vector<std::complex<double>> &state, UINT BATCH_SIZE, UINT n,
+                                 const std::complex<double> matrix[2][2], UINT target)
+{
+    ITYPE mask = 1ULL << target;
+
+#pragma omp parallel for
+    for (int sample = 0; sample < BATCH_SIZE; sample++) {
+
+        for (ITYPE i = 0; i < 1ULL << n; i += (mask << 1)) {
+#pragma omp simd
+            for (ITYPE i0 = i; i0 < i + mask; i0++) {
+                ITYPE i1 = i0 + mask;
+
+                std::complex<double> tmp0 = state[i0 + sample * (1 << n)];
+                std::complex<double> tmp1 = state[i1 + sample * (1 << n)];
+
+                state[i0 + sample * (1 << n)] = matrix[0][0] * tmp0 + matrix[0][1] * tmp1;
+                state[i1 + sample * (1 << n)] = matrix[1][0] * tmp0 + matrix[1][1] * tmp1;
+            }
+        }
+    }
+}
+#else
+// Gather-Scatter implementation
 void apply_single_qubit_gate_aos(std::vector<std::complex<double>> &state, UINT BATCH_SIZE, UINT n,
                                  const std::complex<double> matrix[2][2], UINT target)
 {
@@ -86,10 +113,11 @@ void apply_single_qubit_gate_aos(std::vector<std::complex<double>> &state, UINT 
             std::complex<double> tmp1 = state[i1 + sample * (1 << n)];
 
             state[i0 + sample * (1 << n)] = matrix[0][0] * tmp0 + matrix[0][1] * tmp1;
-            state[i0 + sample * (1 << n)] = matrix[1][0] * tmp0 + matrix[1][1] * tmp1;
+            state[i1 + sample * (1 << n)] = matrix[1][0] * tmp0 + matrix[1][1] * tmp1;
         }
     }
 }
+#endif
 
 void apply_two_qubit_gate(std::vector<double> &state_re, std::vector<double> &state_im,
                           UINT BATCH_SIZE, UINT n, const double matrix_re[4][4],
@@ -218,7 +246,6 @@ void apply_rx_gate_aos(std::vector<std::complex<double>> &state, UINT BATCH_SIZE
 
     apply_single_qubit_gate_aos(state, BATCH_SIZE, n, matrix, target);
 }
-
 
 void apply_sx_gate(std::vector<double> &state_re, std::vector<double> &state_im, UINT BATCH_SIZE,
                    UINT n, UINT target)
