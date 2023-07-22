@@ -7,7 +7,7 @@
 
 #include "gate.hpp"
 
-#define LAYOUT_AOS
+#define LAYOUT_SOA2
 
 void apply_rx_single_soa2(std::vector<double> &state_re, std::vector<double> &state_im,
                           UINT BATCH_SIZE, UINT N_QUBITS, UINT DEPTH, UINT TARGET,
