@@ -104,23 +104,33 @@ int main(int argc, char *argv[])
 
     // Warmup run
     for (int batch = 0; batch < N_SAMPLES; batch += BATCH_SIZE) {
-        if (TARGET < 0) {
-#if defined(LAYOUT_SOA1)
-            apply_rx_all_soa1(state, BATCH_SIZE, N_QUBITS, DEPTH, engine, dist);
-#elif defined(LAYOUT_SOA2)
-            apply_rx_all_soa2(state_re, state_im, BATCH_SIZE, N_QUBITS, DEPTH, engine, dist);
-#elif defined(LAYOUT_AOS)
-            apply_rx_all_aos(state, BATCH_SIZE, N_QUBITS, DEPTH, engine, dist);
-#endif
-        } else {
-#if defined(LAYOUT_SOA1)
-            apply_rx_single_soa1(state, BATCH_SIZE, N_QUBITS, DEPTH, TARGET, engine, dist);
-#elif defined(LAYOUT_SOA2)
-            apply_rx_single_soa2(state_re, state_im, BATCH_SIZE, N_QUBITS, DEPTH, TARGET, engine,
-                                 dist);
-#elif defined(LAYOUT_AOS)
-            apply_rx_single_aos(state, BATCH_SIZE, N_QUBITS, DEPTH, TARGET, engine, dist);
-#endif
+//         if (TARGET < 0) {
+// #if defined(LAYOUT_SOA1)
+//             apply_rx_all_soa1(state, BATCH_SIZE, N_QUBITS, DEPTH, engine, dist);
+// #elif defined(LAYOUT_SOA2)
+//             apply_rx_all_soa2(state_re, state_im, BATCH_SIZE, N_QUBITS, DEPTH, engine, dist);
+// #elif defined(LAYOUT_AOS)
+//             apply_rx_all_aos(state, BATCH_SIZE, N_QUBITS, DEPTH, engine, dist);
+// #endif
+//         } else {
+// #if defined(LAYOUT_SOA1)
+//             apply_rx_single_soa1(state, BATCH_SIZE, N_QUBITS, DEPTH, TARGET, engine, dist);
+// #elif defined(LAYOUT_SOA2)
+//             apply_rx_single_soa2(state_re, state_im, BATCH_SIZE, N_QUBITS, DEPTH, TARGET, engine,
+//                                  dist);
+// #elif defined(LAYOUT_AOS)
+//             apply_rx_single_aos(state, BATCH_SIZE, N_QUBITS, DEPTH, TARGET, engine, dist);
+// #endif
+//         }
+
+        for (int d = 0; d < DEPTH; d++) {
+            for (int i = 0; i < N_QUBITS; i++) {
+                apply_rx_gate(state_re, state_im, BATCH_SIZE, N_QUBITS, dist(engine), TARGET);
+            }
+            for (int i = 0; i < N_QUBITS; i++) {
+                apply_cnot_gate(state_re, state_im, BATCH_SIZE, N_QUBITS, TARGET,
+                                (TARGET + 1) % N_QUBITS);
+            }
         }
     }
 
@@ -128,23 +138,33 @@ int main(int argc, char *argv[])
         auto start_time = std::chrono::high_resolution_clock::now();
 
         for (int batch = 0; batch < N_SAMPLES; batch += BATCH_SIZE) {
-            if (TARGET < 0) {
-#if defined(LAYOUT_SOA1)
-                apply_rx_all_soa1(state, BATCH_SIZE, N_QUBITS, DEPTH, engine, dist);
-#elif defined(LAYOUT_SOA2)
-                apply_rx_all_soa2(state_re, state_im, BATCH_SIZE, N_QUBITS, DEPTH, engine, dist);
-#elif defined(LAYOUT_AOS)
-                apply_rx_all_aos(state, BATCH_SIZE, N_QUBITS, DEPTH, engine, dist);
-#endif
-            } else {
-#if defined(LAYOUT_SOA1)
-                apply_rx_single_soa1(state, BATCH_SIZE, N_QUBITS, DEPTH, TARGET, engine, dist);
-#elif defined(LAYOUT_SOA2)
-                apply_rx_single_soa2(state_re, state_im, BATCH_SIZE, N_QUBITS, DEPTH, TARGET,
-                                     engine, dist);
-#elif defined(LAYOUT_AOS)
-                apply_rx_single_aos(state, BATCH_SIZE, N_QUBITS, DEPTH, TARGET, engine, dist);
-#endif
+//             if (TARGET < 0) {
+// #if defined(LAYOUT_SOA1)
+//                 apply_rx_all_soa1(state, BATCH_SIZE, N_QUBITS, DEPTH, engine, dist);
+// #elif defined(LAYOUT_SOA2)
+//                 apply_rx_all_soa2(state_re, state_im, BATCH_SIZE, N_QUBITS, DEPTH, engine, dist);
+// #elif defined(LAYOUT_AOS)
+//                 apply_rx_all_aos(state, BATCH_SIZE, N_QUBITS, DEPTH, engine, dist);
+// #endif
+//             } else {
+// #if defined(LAYOUT_SOA1)
+//                 apply_rx_single_soa1(state, BATCH_SIZE, N_QUBITS, DEPTH, TARGET, engine, dist);
+// #elif defined(LAYOUT_SOA2)
+//                 apply_rx_single_soa2(state_re, state_im, BATCH_SIZE, N_QUBITS, DEPTH, TARGET,
+//                                      engine, dist);
+// #elif defined(LAYOUT_AOS)
+//                 apply_rx_single_aos(state, BATCH_SIZE, N_QUBITS, DEPTH, TARGET, engine, dist);
+// #endif
+//             }
+
+            for (int d = 0; d < DEPTH; d++) {
+                for (int i = 0; i < N_QUBITS; i++) {
+                    apply_rx_gate(state_re, state_im, BATCH_SIZE, N_QUBITS, dist(engine), TARGET);
+                }
+                for (int i = 0; i < N_QUBITS; i++) {
+                    apply_cnot_gate(state_re, state_im, BATCH_SIZE, N_QUBITS, TARGET,
+                                    (TARGET + 1) % N_QUBITS);
+                }
             }
         }
 
