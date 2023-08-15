@@ -5,6 +5,17 @@
 ```
 cmake -DCMAKE_CXX_FLAGS="-std=c++17" \
       -DCMAKE_TOOLCHAIN_FILE=/opt/nec/ve/share/cmake/toolchainVE.cmake \
+      -DCMAKE_EXE_LINKER_FLAGS="-fopenmp" \
+      -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+      ..
+```
+
+## Building (Apple Silicon)
+
+```
+cmake -DCMAKE_CXX_FLAGS="-I$(brew --prefix libomp)/include -Xpreprocessor -fopenmp" \
+      -DCMAKE_EXE_LINKER_FLAGS="-L$(brew --prefix libomp)/lib -lomp" \
+      -DCMAKE_MODULE_LINKER_FLAGS="-L$(brew --prefix)/lib -lomp" \
       -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
       ..
 ```
