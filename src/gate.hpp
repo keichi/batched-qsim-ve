@@ -21,13 +21,13 @@ void apply_h_gate(std::vector<double> &state_re, std::vector<double> &state_im, 
                   UINT n, UINT target);
 
 void apply_rx_gate(std::vector<double> &state_re, std::vector<double> &state_im, UINT BATCH_SIZE,
-                   UINT n, double angle, UINT target);
+                   UINT n, double theta, UINT target);
 
 void apply_rx_gate_soa1(std::vector<std::complex<double>> &state, UINT BATCH_SIZE, UINT n,
-                        double angle, UINT target);
+                        double theta, UINT target);
 
 void apply_rx_gate_aos(std::vector<std::complex<double>> &state, UINT BATCH_SIZE, UINT n,
-                       double angle, UINT target);
+                       double theta, UINT target);
 
 void apply_sx_gate(std::vector<double> &state_re, std::vector<double> &state_im, UINT BATCH_SIZE,
                    UINT n, UINT target);

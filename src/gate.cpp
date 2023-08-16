@@ -322,32 +322,32 @@ void apply_h_gate(std::vector<double> &state_re, std::vector<double> &state_im, 
 }
 
 void apply_rx_gate(std::vector<double> &state_re, std::vector<double> &state_im, UINT BATCH_SIZE,
-                   UINT n, double angle, UINT target)
+                   UINT n, double theta, UINT target)
 {
-    double matrix_re[2][2] = {{std::cos(angle / 2), 0}, {0, std::cos(angle / 2)}};
-    double matrix_im[2][2] = {{0, -std::sin(angle / 2)}, {-std::sin(angle / 2), 0}};
+    double matrix_re[2][2] = {{std::cos(theta / 2), 0}, {0, std::cos(theta / 2)}};
+    double matrix_im[2][2] = {{0, -std::sin(theta / 2)}, {-std::sin(theta / 2), 0}};
 
     apply_single_qubit_gate(state_re, state_im, BATCH_SIZE, n, matrix_re, matrix_im, target);
 }
 
 void apply_rx_gate_soa1(std::vector<std::complex<double>> &state, UINT BATCH_SIZE, UINT n,
-                        double angle, UINT target)
+                        double theta, UINT target)
 {
-    std::complex<double> matrix[2][2] = {{std::complex<double>(std::cos(angle / 2), 0),
-                                          std::complex<double>(0, -std::sin(angle / 2))},
-                                         {std::complex<double>(-std::sin(angle / 2), 0),
-                                          std::complex<double>(std::cos(angle / 2), 0)}};
+    std::complex<double> matrix[2][2] = {{std::complex<double>(std::cos(theta / 2), 0),
+                                          std::complex<double>(0, -std::sin(theta / 2))},
+                                         {std::complex<double>(-std::sin(theta / 2), 0),
+                                          std::complex<double>(std::cos(theta / 2), 0)}};
 
     apply_single_qubit_gate_soa1(state, BATCH_SIZE, n, matrix, target);
 }
 
 void apply_rx_gate_aos(std::vector<std::complex<double>> &state, UINT BATCH_SIZE, UINT n,
-                       double angle, UINT target)
+                       double theta, UINT target)
 {
-    std::complex<double> matrix[2][2] = {{std::complex<double>(std::cos(angle / 2), 0),
-                                          std::complex<double>(0, -std::sin(angle / 2))},
-                                         {std::complex<double>(-std::sin(angle / 2), 0),
-                                          std::complex<double>(std::cos(angle / 2), 0)}};
+    std::complex<double> matrix[2][2] = {{std::complex<double>(std::cos(theta / 2), 0),
+                                          std::complex<double>(0, -std::sin(theta / 2))},
+                                         {std::complex<double>(-std::sin(theta / 2), 0),
+                                          std::complex<double>(std::cos(theta / 2), 0)}};
 
     apply_single_qubit_gate_aos(state, BATCH_SIZE, n, matrix, target);
 }
