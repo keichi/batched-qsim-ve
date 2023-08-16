@@ -465,3 +465,56 @@ void apply_cz_gate_opt(std::vector<double> &state_re, std::vector<double> &state
         }
     }
 }
+
+void apply_depolarizing_gate_1q(std::vector<double> &state_re, std::vector<double> &state_im,
+                                UINT BATCH_SIZE, UINT n, UINT target, double prob)
+{
+    std::vector<double> dice(n);
+    std::vector<double> noisy_samples;
+
+    for (int sample = 0; sample < n; sample++) {
+        if (dice[sample] < prob) {
+            noisy_samples.push_back(sample);
+        }
+    }
+
+    ITYPE mask = 1ULL << target;
+    ITYPE lo_mask = mask - 1;
+    ITYPE hi_mask = ~lo_mask;
+
+#pragma omp parallel for
+    for (ITYPE i = 0; i < 1ULL << (n - 1); i++) {
+        ITYPE i0 = ((i & hi_mask) << 1) | (i & lo_mask);
+        ITYPE i1 = i0 | mask;
+
+#pragma omp simd
+        for (int j = 0; j < noisy_samples.size(); j++) {
+            int sample = noisy_samples[j];
+
+            double tmp0_re = state_re[sample + i0 * BATCH_SIZE];
+            double tmp0_im = state_im[sample + i0 * BATCH_SIZE];
+            double tmp1_re = state_re[sample + i1 * BATCH_SIZE];
+            double tmp1_im = state_im[sample + i1 * BATCH_SIZE];
+
+            if (dice[sample] < prob / 3.0) {
+                // Apply X gate
+                state_re[sample + i0 * BATCH_SIZE] = tmp1_re;
+                state_im[sample + i0 * BATCH_SIZE] = tmp1_im;
+
+                state_re[sample + i1 * BATCH_SIZE] = tmp0_re;
+                state_im[sample + i1 * BATCH_SIZE] = tmp0_im;
+            } else if (dice[sample] < prob * 2.0 / 3.0) {
+                // Apply Y gate
+                state_re[sample + i0 * BATCH_SIZE] = tmp1_im;
+                state_im[sample + i0 * BATCH_SIZE] = -tmp1_re;
+
+                state_re[sample + i1 * BATCH_SIZE] = tmp0_im;
+                state_im[sample + i1 * BATCH_SIZE] = -tmp0_re;
+            } else {
+                // Apply Z gate
+                state_re[sample + i1 * BATCH_SIZE] = -tmp1_re;
+                state_im[sample + i1 * BATCH_SIZE] = -tmp1_im;
+            }
+        }
+    }
+}

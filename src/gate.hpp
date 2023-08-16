@@ -43,3 +43,6 @@ void apply_cnot_gate(std::vector<double> &state_re, std::vector<double> &state_i
 
 void apply_cz_gate(std::vector<double> &state_re, std::vector<double> &state_im, UINT BATCH_SIZE,
                    UINT n, UINT target, UINT control);
+
+void apply_depolarizing_gate_1q(std::vector<double> &state_re, std::vector<double> &state_im,
+                                UINT BATCH_SIZE, UINT n, UINT target);
