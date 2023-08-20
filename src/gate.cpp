@@ -202,7 +202,7 @@ void apply_two_qubit_gate(std::vector<double> &state_re, std::vector<double> &st
             state_re[sample + i00 * BATCH_SIZE] =
                 matrix_re[0][0] * tmp00_re - matrix_im[0][0] * tmp00_im +
                 matrix_re[0][1] * tmp01_re - matrix_im[0][1] * tmp01_im +
-                matrix_re[0][2] * tmp10_re - matrix_im[0][2] * tmp11_im +
+                matrix_re[0][2] * tmp10_re - matrix_im[0][2] * tmp10_im +
                 matrix_re[0][3] * tmp11_re - matrix_im[0][3] * tmp11_im;
             state_im[sample + i00 * BATCH_SIZE] =
                 matrix_re[0][0] * tmp00_im + matrix_im[0][0] * tmp00_re +
@@ -213,7 +213,7 @@ void apply_two_qubit_gate(std::vector<double> &state_re, std::vector<double> &st
             state_re[sample + i01 * BATCH_SIZE] =
                 matrix_re[1][0] * tmp00_re - matrix_im[1][0] * tmp00_im +
                 matrix_re[1][1] * tmp01_re - matrix_im[1][1] * tmp01_im +
-                matrix_re[1][2] * tmp10_re - matrix_im[1][2] * tmp11_im +
+                matrix_re[1][2] * tmp10_re - matrix_im[1][2] * tmp10_im +
                 matrix_re[1][3] * tmp11_re - matrix_im[1][3] * tmp11_im;
             state_im[sample + i01 * BATCH_SIZE] =
                 matrix_re[1][0] * tmp00_im + matrix_im[1][0] * tmp00_re +
@@ -224,7 +224,7 @@ void apply_two_qubit_gate(std::vector<double> &state_re, std::vector<double> &st
             state_re[sample + i10 * BATCH_SIZE] =
                 matrix_re[2][0] * tmp00_re - matrix_im[2][0] * tmp00_im +
                 matrix_re[2][1] * tmp01_re - matrix_im[2][1] * tmp01_im +
-                matrix_re[2][2] * tmp10_re - matrix_im[2][2] * tmp11_im +
+                matrix_re[2][2] * tmp10_re - matrix_im[2][2] * tmp10_im +
                 matrix_re[2][3] * tmp11_re - matrix_im[2][3] * tmp11_im;
             state_im[sample + i10 * BATCH_SIZE] =
                 matrix_re[2][0] * tmp00_im + matrix_im[2][0] * tmp00_re +
@@ -235,7 +235,7 @@ void apply_two_qubit_gate(std::vector<double> &state_re, std::vector<double> &st
             state_re[sample + i11 * BATCH_SIZE] =
                 matrix_re[3][0] * tmp00_re - matrix_im[3][0] * tmp00_im +
                 matrix_re[3][1] * tmp01_re - matrix_im[3][1] * tmp01_im +
-                matrix_re[3][2] * tmp10_re - matrix_im[3][2] * tmp11_im +
+                matrix_re[3][2] * tmp10_re - matrix_im[3][2] * tmp10_im +
                 matrix_re[3][3] * tmp11_re - matrix_im[3][3] * tmp11_im;
             state_im[sample + i11 * BATCH_SIZE] =
                 matrix_re[3][0] * tmp00_im + matrix_im[3][0] * tmp00_re +
