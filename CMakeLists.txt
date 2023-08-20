@@ -24,6 +24,9 @@ find_package(OpenMP REQUIRED)
 add_executable(qsim-bench src/main.cpp src/gate.cpp)
 target_link_libraries(qsim-bench cxxopts OpenMP::OpenMP_CXX)
 
+add_executable(qsim-random-circuit src/random_circuit.cpp src/gate.cpp)
+target_link_libraries(qsim-random-circuit cxxopts OpenMP::OpenMP_CXX)
+
 enable_testing()
 include(${doctest_SOURCE_DIR}/scripts/cmake/doctest.cmake)
 

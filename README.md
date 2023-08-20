@@ -1,6 +1,8 @@
 # batched-qsim-ve
 
-## Building (Vector Engine)
+## Building
+
+NEC Vector Engine
 
 ```
 cmake -DCMAKE_CXX_FLAGS="-std=c++17" \
@@ -10,7 +12,7 @@ cmake -DCMAKE_CXX_FLAGS="-std=c++17" \
       ..
 ```
 
-## Building (Apple Silicon)
+Apple Silicon
 
 ```
 cmake -DCMAKE_CXX_FLAGS="-I$(brew --prefix libomp)/include -Xpreprocessor -fopenmp" \
@@ -20,7 +22,7 @@ cmake -DCMAKE_CXX_FLAGS="-I$(brew --prefix libomp)/include -Xpreprocessor -fopen
       ..
 ```
 
-## Building (Intel CPU)
+Intel CPU
 
 ```
 cmake -DCMAKE_CXX_COMPILER=icpc \

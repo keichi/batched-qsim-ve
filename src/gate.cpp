@@ -2,9 +2,29 @@
 
 #include <algorithm>
 #include <cmath>
-// #include <iostream>
 
 #include "gate.hpp"
+
+void set_zero_state(std::vector<double> &state_re, std::vector<double> &state_im, UINT BATCH_SIZE,
+                    UINT n)
+{
+#pragma omp parallel for
+    for (ITYPE i = 0; i < 1ULL << n; i++) {
+#pragma omp simd
+        for (int sample = 0; sample < BATCH_SIZE; sample++) {
+            state_re[sample + i * BATCH_SIZE] = 0;
+            state_im[sample + i * BATCH_SIZE] = 0;
+            state_re[sample + i * BATCH_SIZE] = 0;
+            state_im[sample + i * BATCH_SIZE] = 0;
+        }
+    }
+
+#pragma omp simd
+    for (int sample = 0; sample < BATCH_SIZE; sample++) {
+        state_re[sample] = 1;
+        state_re[sample] = 1;
+    }
+}
 
 void apply_single_qubit_gate(std::vector<double> &state_re, std::vector<double> &state_im,
                              UINT BATCH_SIZE, UINT n, const double matrix_re[2][2],
@@ -160,17 +180,12 @@ void apply_two_qubit_gate(std::vector<double> &state_re, std::vector<double> &st
     ITYPE mid_mask = (max_qubit_mask - 1) ^ lo_mask;
     ITYPE hi_mask = ~(max_qubit_mask - 1);
 
-    // std::cout << "control=" << control << " target=" << target << std::endl;
-
 #pragma omp parallel for
     for (ITYPE i = 0; i < 1ULL << (n - 2); i++) {
         ITYPE i00 = ((i & hi_mask) << 2) | ((i & mid_mask) << 1) | ((i & lo_mask));
         ITYPE i01 = i00 | target_mask;
         ITYPE i10 = i00 | control_mask;
         ITYPE i11 = i00 | control_mask | target_mask;
-
-        // std::cout << "(i00, i01, i10, i11): " << i00 << ", " << i01 << ", " << i10 << ", " << i11
-        //           << std::endl;
 
 #pragma omp simd
         for (int sample = 0; sample < BATCH_SIZE; sample++) {
@@ -370,6 +385,16 @@ void apply_sy_gate(std::vector<double> &state_re, std::vector<double> &state_im,
     apply_single_qubit_gate(state_re, state_im, BATCH_SIZE, n, matrix_re, matrix_im, target);
 }
 
+void apply_sw_gate(std::vector<double> &state_re, std::vector<double> &state_im, UINT BATCH_SIZE,
+                   UINT n, UINT target)
+{
+    static double inv_sqrt2 = 1 / std::sqrt(2);
+    static double matrix_re[2][2] = {{inv_sqrt2, -0.5}, {0.5, inv_sqrt2}};
+    static double matrix_im[2][2] = {{0, -0.5}, {-0.5, 0}};
+
+    apply_single_qubit_gate(state_re, state_im, BATCH_SIZE, n, matrix_re, matrix_im, target);
+}
+
 void apply_t_gate(std::vector<double> &state_re, std::vector<double> &state_im, UINT BATCH_SIZE,
                   UINT n, UINT target)
 {
@@ -430,6 +455,17 @@ void apply_cz_gate(std::vector<double> &state_re, std::vector<double> &state_im,
 {
     static double matrix_re[4][4] = {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, -1}};
     static double matrix_im[4][4] = {{0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}};
+
+    apply_two_qubit_gate(state_re, state_im, BATCH_SIZE, n, matrix_re, matrix_im, target, control);
+}
+
+void apply_iswaplike_gate(std::vector<double> &state_re, std::vector<double> &state_im,
+                          UINT BATCH_SIZE, UINT n, double theta, UINT target, UINT control)
+{
+    double matrix_re[4][4] = {
+        {1, 0, 0, 0}, {0, std::cos(theta), 0, 0}, {0, 0, std::cos(theta), 0}, {0, 0, 0, 1}};
+    double matrix_im[4][4] = {
+        {0, 0, 0, 0}, {0, 0, -std::sin(theta), 0}, {0, -std::sin(theta), 0, 0}, {0, 0, 0, 0}};
 
     apply_two_qubit_gate(state_re, state_im, BATCH_SIZE, n, matrix_re, matrix_im, target, control);
 }

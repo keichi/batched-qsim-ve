@@ -6,6 +6,9 @@
 using UINT = unsigned int;
 using ITYPE = unsigned long long;
 
+void set_zero_state(std::vector<double> &state_re, std::vector<double> &state_im, UINT BATCH_SIZE,
+                    UINT n);
+
 void apply_single_qubit_gate(std::vector<double> &state_re, std::vector<double> &state_im,
                              UINT BATCH_SIZE, UINT n, const double matrix_re[2][2],
                              const double matrix_im[2][2], UINT target);
@@ -35,11 +38,17 @@ void apply_sx_gate(std::vector<double> &state_re, std::vector<double> &state_im,
 void apply_sy_gate(std::vector<double> &state_re, std::vector<double> &state_im, UINT BATCH_SIZE,
                    UINT n, UINT target);
 
+void apply_sw_gate(std::vector<double> &state_re, std::vector<double> &state_im, UINT BATCH_SIZE,
+                   UINT n, UINT target);
+
 void apply_t_gate(std::vector<double> &state_re, std::vector<double> &state_im, UINT BATCH_SIZE,
                   UINT n, UINT target);
 
 void apply_cnot_gate(std::vector<double> &state_re, std::vector<double> &state_im, UINT BATCH_SIZE,
                      UINT n, UINT target, UINT control);
+
+void apply_iswaplike_gate(std::vector<double> &state_re, std::vector<double> &state_im,
+                          UINT BATCH_SIZE, UINT n, double theta, UINT target, UINT control);
 
 void apply_cz_gate(std::vector<double> &state_re, std::vector<double> &state_im, UINT BATCH_SIZE,
                    UINT n, UINT target, UINT control);
