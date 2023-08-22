@@ -7,68 +7,6 @@
 
 #include "gate.hpp"
 
-#define LAYOUT_SOA2
-
-void apply_rx_single_soa2(std::vector<double> &state_re, std::vector<double> &state_im,
-                          UINT BATCH_SIZE, UINT N_QUBITS, UINT DEPTH, UINT TARGET,
-                          std::mt19937 &engine, std::uniform_real_distribution<double> &dist)
-{
-    for (int d = 0; d < DEPTH; d++) {
-        apply_rx_gate(state_re, state_im, BATCH_SIZE, N_QUBITS, dist(engine), TARGET);
-    }
-}
-
-void apply_rx_single_soa1(std::vector<std::complex<double>> &state, UINT BATCH_SIZE, UINT N_QUBITS,
-                          UINT DEPTH, UINT TARGET, std::mt19937 &engine,
-                          std::uniform_real_distribution<double> &dist)
-{
-    for (int d = 0; d < DEPTH; d++) {
-        apply_rx_gate_soa1(state, BATCH_SIZE, N_QUBITS, dist(engine), TARGET);
-    }
-}
-
-void apply_rx_single_aos(std::vector<std::complex<double>> &state, UINT BATCH_SIZE, UINT N_QUBITS,
-                         UINT DEPTH, UINT TARGET, std::mt19937 &engine,
-                         std::uniform_real_distribution<double> &dist)
-{
-    for (int d = 0; d < DEPTH; d++) {
-        apply_rx_gate_aos(state, BATCH_SIZE, N_QUBITS, dist(engine), TARGET);
-    }
-}
-
-void apply_rx_all_soa2(std::vector<double> &state_re, std::vector<double> &state_im,
-                       UINT BATCH_SIZE, UINT N_QUBITS, UINT DEPTH, std::mt19937 &engine,
-                       std::uniform_real_distribution<double> &dist)
-{
-    for (int d = 0; d < DEPTH; d++) {
-        for (int i = 0; i < N_QUBITS; i++) {
-            apply_rx_gate(state_re, state_im, BATCH_SIZE, N_QUBITS, dist(engine), i);
-        }
-    }
-}
-
-void apply_rx_all_soa1(std::vector<std::complex<double>> &state, UINT BATCH_SIZE, UINT N_QUBITS,
-                       UINT DEPTH, std::mt19937 &engine,
-                       std::uniform_real_distribution<double> &dist)
-{
-    for (int d = 0; d < DEPTH; d++) {
-        for (int i = 0; i < N_QUBITS; i++) {
-            apply_rx_gate_soa1(state, BATCH_SIZE, N_QUBITS, dist(engine), i);
-        }
-    }
-}
-
-void apply_rx_all_aos(std::vector<std::complex<double>> &state, UINT BATCH_SIZE, UINT N_QUBITS,
-                      UINT DEPTH, std::mt19937 &engine,
-                      std::uniform_real_distribution<double> &dist)
-{
-    for (int d = 0; d < DEPTH; d++) {
-        for (int i = 0; i < N_QUBITS; i++) {
-            apply_rx_gate_aos(state, BATCH_SIZE, N_QUBITS, dist(engine), i);
-        }
-    }
-}
-
 int main(int argc, char *argv[])
 {
     cxxopts::Options options("batched-qsim-ve", "Batched quantum circuit simulator for VE");
@@ -95,41 +33,16 @@ int main(int argc, char *argv[])
     std::mt19937 engine(seed_gen());
     std::uniform_real_distribution<double> dist(0.0, M_PI);
     std::vector<double> durations;
-#if defined(LAYOUT_SOA2)
-    std::vector<double> state_re((1ULL << N_QUBITS) * BATCH_SIZE);
-    std::vector<double> state_im((1ULL << N_QUBITS) * BATCH_SIZE);
-#elif defined(LAYOUT_SOA1) || defined(LAYOUT_AOS)
-    std::vector<std::complex<double>> state((1ULL << N_QUBITS) * BATCH_SIZE);
-#endif
+    State state(N_QUBITS, BATCH_SIZE);
 
     // Warmup run
     for (int batch = 0; batch < N_SAMPLES; batch += BATCH_SIZE) {
-//         if (TARGET < 0) {
-// #if defined(LAYOUT_SOA1)
-//             apply_rx_all_soa1(state, BATCH_SIZE, N_QUBITS, DEPTH, engine, dist);
-// #elif defined(LAYOUT_SOA2)
-//             apply_rx_all_soa2(state_re, state_im, BATCH_SIZE, N_QUBITS, DEPTH, engine, dist);
-// #elif defined(LAYOUT_AOS)
-//             apply_rx_all_aos(state, BATCH_SIZE, N_QUBITS, DEPTH, engine, dist);
-// #endif
-//         } else {
-// #if defined(LAYOUT_SOA1)
-//             apply_rx_single_soa1(state, BATCH_SIZE, N_QUBITS, DEPTH, TARGET, engine, dist);
-// #elif defined(LAYOUT_SOA2)
-//             apply_rx_single_soa2(state_re, state_im, BATCH_SIZE, N_QUBITS, DEPTH, TARGET, engine,
-//                                  dist);
-// #elif defined(LAYOUT_AOS)
-//             apply_rx_single_aos(state, BATCH_SIZE, N_QUBITS, DEPTH, TARGET, engine, dist);
-// #endif
-//         }
-
         for (int d = 0; d < DEPTH; d++) {
             for (int i = 0; i < N_QUBITS; i++) {
-                apply_rx_gate(state_re, state_im, BATCH_SIZE, N_QUBITS, dist(engine), TARGET);
+                state.apply_rx_gate(dist(engine), TARGET);
             }
             for (int i = 0; i < N_QUBITS; i++) {
-                apply_cnot_gate(state_re, state_im, BATCH_SIZE, N_QUBITS, TARGET,
-                                (TARGET + 1) % N_QUBITS);
+                state.apply_cnot_gate(TARGET, (TARGET + 1) % N_QUBITS);
             }
         }
     }
@@ -138,32 +51,12 @@ int main(int argc, char *argv[])
         auto start_time = std::chrono::high_resolution_clock::now();
 
         for (int batch = 0; batch < N_SAMPLES; batch += BATCH_SIZE) {
-//             if (TARGET < 0) {
-// #if defined(LAYOUT_SOA1)
-//                 apply_rx_all_soa1(state, BATCH_SIZE, N_QUBITS, DEPTH, engine, dist);
-// #elif defined(LAYOUT_SOA2)
-//                 apply_rx_all_soa2(state_re, state_im, BATCH_SIZE, N_QUBITS, DEPTH, engine, dist);
-// #elif defined(LAYOUT_AOS)
-//                 apply_rx_all_aos(state, BATCH_SIZE, N_QUBITS, DEPTH, engine, dist);
-// #endif
-//             } else {
-// #if defined(LAYOUT_SOA1)
-//                 apply_rx_single_soa1(state, BATCH_SIZE, N_QUBITS, DEPTH, TARGET, engine, dist);
-// #elif defined(LAYOUT_SOA2)
-//                 apply_rx_single_soa2(state_re, state_im, BATCH_SIZE, N_QUBITS, DEPTH, TARGET,
-//                                      engine, dist);
-// #elif defined(LAYOUT_AOS)
-//                 apply_rx_single_aos(state, BATCH_SIZE, N_QUBITS, DEPTH, TARGET, engine, dist);
-// #endif
-//             }
-
             for (int d = 0; d < DEPTH; d++) {
                 for (int i = 0; i < N_QUBITS; i++) {
-                    apply_rx_gate(state_re, state_im, BATCH_SIZE, N_QUBITS, dist(engine), TARGET);
+                    state.apply_rx_gate(dist(engine), TARGET);
                 }
                 for (int i = 0; i < N_QUBITS; i++) {
-                    apply_cnot_gate(state_re, state_im, BATCH_SIZE, N_QUBITS, TARGET,
-                                    (TARGET + 1) % N_QUBITS);
+                    state.apply_cnot_gate(TARGET, (TARGET + 1) % N_QUBITS);
                 }
             }
         }

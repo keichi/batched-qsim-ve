@@ -11,37 +11,31 @@ UINT grid_to_id(UINT x, UINT y, UINT length) { return x + length * y; }
 
 bool in_grid(UINT x, UINT y, UINT length) { return x < length && y < length && x >= 0 && y >= 0; }
 
-void apply_2q_gate(std::vector<double> &state_re, std::vector<double> &state_im, UINT BATCH_SIZE,
-                   UINT LENGTH, UINT x1, UINT y1, UINT x2, UINT y2)
+void apply_2q_gate(State &state, UINT LENGTH, UINT x1, UINT y1, UINT x2, UINT y2)
 {
     if (!in_grid(x1, y1, LENGTH) || !in_grid(x2, y2, LENGTH)) {
         return;
     }
 
-    UINT N_QUBITS = LENGTH * LENGTH;
     static double theta = M_PI / 2;
     UINT target = grid_to_id(x1, y1, LENGTH);
     UINT control = grid_to_id(x2, y2, LENGTH);
 
-    apply_iswaplike_gate(state_re, state_im, BATCH_SIZE, N_QUBITS, theta, target, control);
+    state.apply_iswaplike_gate(theta, target, control);
 }
 
-void apply_random_1q_gate(std::vector<double> &state_re, std::vector<double> &state_im,
-                          UINT BATCH_SIZE, UINT LENGTH, double dice, UINT target)
+void apply_random_1q_gate(State &state, double dice, UINT target)
 {
-    UINT N_QUBITS = LENGTH * LENGTH;
-
     if (dice < 1.0 / 3.0) {
-        apply_sx_gate(state_re, state_im, BATCH_SIZE, N_QUBITS, target);
+        state.apply_sx_gate(target);
     } else if (dice < 2.0 / 3.0) {
-        apply_sy_gate(state_re, state_im, BATCH_SIZE, N_QUBITS, target);
+        state.apply_sy_gate(target);
     } else {
-        apply_sw_gate(state_re, state_im, BATCH_SIZE, N_QUBITS, target);
+        state.apply_sw_gate(target);
     }
 }
 
-void run_single_batch(std::vector<double> &state_re, std::vector<double> &state_im, UINT BATCH_SIZE,
-                      UINT LENGTH, UINT DEPTH, std::mt19937 &engine,
+void run_single_batch(State &state, UINT LENGTH, UINT DEPTH, std::mt19937 &engine,
                       std::uniform_real_distribution<double> &dist)
 {
     UINT N_QUBITS = LENGTH * LENGTH;
@@ -49,22 +43,8 @@ void run_single_batch(std::vector<double> &state_re, std::vector<double> &state_
     for (int d = 0; d < DEPTH; d++) {
         double dice = dist(engine);
 
-        if (d % 4 == 0) {
-            for (int i = 0; i < N_QUBITS; i++) {
-                apply_random_1q_gate(state_re, state_im, BATCH_SIZE, LENGTH, dice, i);
-            }
-        } else if (d % 4 == 1) {
-            for (int i = 0; i < LENGTH; i++) {
-                apply_random_1q_gate(state_re, state_im, BATCH_SIZE, LENGTH, dice, i);
-            }
-        } else if (d % 4 == 2) {
-            for (int i = 0; i < LENGTH; i++) {
-                apply_random_1q_gate(state_re, state_im, BATCH_SIZE, LENGTH, dice, i);
-            }
-        } else if (d % 4 == 3) {
-            for (int i = 0; i < LENGTH; i++) {
-                apply_random_1q_gate(state_re, state_im, BATCH_SIZE, LENGTH, dice, i);
-            }
+        for (int i = 0; i < N_QUBITS; i++) {
+            apply_random_1q_gate(state, dice, i);
         }
 
         for (int i = 0; i < LENGTH; i++) {
@@ -74,13 +54,13 @@ void run_single_batch(std::vector<double> &state_re, std::vector<double> &state_
                 }
 
                 if (d % 4 == 0) {
-                    apply_2q_gate(state_re, state_im, BATCH_SIZE, LENGTH, i, j, i + 1, j);
+                    apply_2q_gate(state, LENGTH, i, j, i + 1, j);
                 } else if (d % 4 == 1) {
-                    apply_2q_gate(state_re, state_im, BATCH_SIZE, LENGTH, i, j, i - 1, j);
+                    apply_2q_gate(state, LENGTH, i, j, i - 1, j);
                 } else if (d % 4 == 2) {
-                    apply_2q_gate(state_re, state_im, BATCH_SIZE, LENGTH, i, j, i, j + 1);
+                    apply_2q_gate(state, LENGTH, i, j, i, j + 1);
                 } else if (d % 4 == 3) {
-                    apply_2q_gate(state_re, state_im, BATCH_SIZE, LENGTH, i, j, i, j - 1);
+                    apply_2q_gate(state, LENGTH, i, j, i, j - 1);
                 }
             }
         }
@@ -113,22 +93,21 @@ int main(int argc, char *argv[])
     std::mt19937 engine(seed_gen());
     std::uniform_real_distribution<double> dist(0, 1);
     std::vector<double> durations;
-    std::vector<double> state_re((1ULL << N_QUBITS) * BATCH_SIZE);
-    std::vector<double> state_im((1ULL << N_QUBITS) * BATCH_SIZE);
+    State state(N_QUBITS, BATCH_SIZE);
 
     // Warmup run
     for (int batch = 0; batch < N_SAMPLES; batch += BATCH_SIZE) {
-        set_zero_state(state_re, state_im, BATCH_SIZE, N_QUBITS);
-        run_single_batch(state_re, state_im, BATCH_SIZE, LENGTH, DEPTH, engine, dist);
+        state.set_zero_state();
+        run_single_batch(state, LENGTH, DEPTH, engine, dist);
     }
 
     for (int trial = 0; trial < N_TRIALS; trial++) {
-        set_zero_state(state_re, state_im, BATCH_SIZE, N_QUBITS);
+        state.set_zero_state();
 
         auto start_time = std::chrono::high_resolution_clock::now();
 
         for (int batch = 0; batch < N_SAMPLES; batch += BATCH_SIZE) {
-            run_single_batch(state_re, state_im, BATCH_SIZE, LENGTH, DEPTH, engine, dist);
+            run_single_batch(state, LENGTH, DEPTH, engine, dist);
         }
 
         auto end_time = std::chrono::high_resolution_clock::now();
