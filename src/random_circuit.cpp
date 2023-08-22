@@ -11,7 +11,7 @@ UINT grid_to_id(UINT x, UINT y, UINT length) { return x + length * y; }
 
 bool in_grid(UINT x, UINT y, UINT length) { return x < length && y < length && x >= 0 && y >= 0; }
 
-void apply_2q_gate(State &state, UINT LENGTH, UINT x1, UINT y1, UINT x2, UINT y2)
+void act_2q_gate(State &state, UINT LENGTH, UINT x1, UINT y1, UINT x2, UINT y2)
 {
     if (!in_grid(x1, y1, LENGTH) || !in_grid(x2, y2, LENGTH)) {
         return;
@@ -21,17 +21,17 @@ void apply_2q_gate(State &state, UINT LENGTH, UINT x1, UINT y1, UINT x2, UINT y2
     UINT target = grid_to_id(x1, y1, LENGTH);
     UINT control = grid_to_id(x2, y2, LENGTH);
 
-    state.apply_iswaplike_gate(theta, target, control);
+    state.act_iswaplike_gate(theta, target, control);
 }
 
-void apply_random_1q_gate(State &state, double dice, UINT target)
+void act_random_1q_gate(State &state, double dice, UINT target)
 {
     if (dice < 1.0 / 3.0) {
-        state.apply_sx_gate(target);
+        state.act_sx_gate(target);
     } else if (dice < 2.0 / 3.0) {
-        state.apply_sy_gate(target);
+        state.act_sy_gate(target);
     } else {
-        state.apply_sw_gate(target);
+        state.act_sw_gate(target);
     }
 }
 
@@ -44,7 +44,7 @@ void run_single_batch(State &state, UINT LENGTH, UINT DEPTH, std::mt19937 &engin
         double dice = dist(engine);
 
         for (int i = 0; i < N_QUBITS; i++) {
-            apply_random_1q_gate(state, dice, i);
+            act_random_1q_gate(state, dice, i);
         }
 
         for (int i = 0; i < LENGTH; i++) {
@@ -54,13 +54,13 @@ void run_single_batch(State &state, UINT LENGTH, UINT DEPTH, std::mt19937 &engin
                 }
 
                 if (d % 4 == 0) {
-                    apply_2q_gate(state, LENGTH, i, j, i + 1, j);
+                    act_2q_gate(state, LENGTH, i, j, i + 1, j);
                 } else if (d % 4 == 1) {
-                    apply_2q_gate(state, LENGTH, i, j, i - 1, j);
+                    act_2q_gate(state, LENGTH, i, j, i - 1, j);
                 } else if (d % 4 == 2) {
-                    apply_2q_gate(state, LENGTH, i, j, i, j + 1);
+                    act_2q_gate(state, LENGTH, i, j, i, j + 1);
                 } else if (d % 4 == 3) {
-                    apply_2q_gate(state, LENGTH, i, j, i, j - 1);
+                    act_2q_gate(state, LENGTH, i, j, i, j - 1);
                 }
             }
         }

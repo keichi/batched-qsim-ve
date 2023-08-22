@@ -25,7 +25,7 @@ void State::set_zero_state()
     }
 }
 
-void State::apply_single_qubit_gate(double matrix_re[2][2], double matrix_im[2][2], UINT target)
+void State::act_single_qubit_gate(double matrix_re[2][2], double matrix_im[2][2], UINT target)
 {
     ITYPE mask = 1ULL << target;
     ITYPE lo_mask = mask - 1;
@@ -62,8 +62,8 @@ void State::apply_single_qubit_gate(double matrix_re[2][2], double matrix_im[2][
     }
 }
 
-void State::apply_two_qubit_gate(double matrix_re[4][4], double matrix_im[4][4], UINT target,
-                                 UINT control)
+void State::act_two_qubit_gate(double matrix_re[4][4], double matrix_im[4][4], UINT target,
+                               UINT control)
 {
     ITYPE target_mask = 1ULL << target;
     ITYPE control_mask = 1ULL << control;
@@ -143,7 +143,7 @@ void State::apply_two_qubit_gate(double matrix_re[4][4], double matrix_im[4][4],
     }
 }
 
-void State::apply_x_gate_opt(UINT target)
+void State::act_x_gate_opt(UINT target)
 {
     ITYPE mask = 1ULL << target;
     ITYPE lo_mask = mask - 1;
@@ -170,7 +170,7 @@ void State::apply_x_gate_opt(UINT target)
     }
 }
 
-void State::apply_y_gate_opt(UINT target)
+void State::act_y_gate_opt(UINT target)
 {
     ITYPE mask = 1ULL << target;
     ITYPE lo_mask = mask - 1;
@@ -197,7 +197,7 @@ void State::apply_y_gate_opt(UINT target)
     }
 }
 
-void State::apply_z_gate_opt(UINT target)
+void State::act_z_gate_opt(UINT target)
 {
     ITYPE mask = 1ULL << target;
     ITYPE lo_mask = mask - 1;
@@ -219,65 +219,65 @@ void State::apply_z_gate_opt(UINT target)
     }
 }
 
-void State::apply_h_gate(UINT target)
+void State::act_h_gate(UINT target)
 {
     static double inv_sqrt2 = 1 / std::sqrt(2);
     static double matrix_re[2][2] = {{inv_sqrt2, inv_sqrt2}, {inv_sqrt2, -inv_sqrt2}};
     static double matrix_im[2][2] = {{0, 0}, {0, 0}};
 
-    apply_single_qubit_gate(matrix_re, matrix_im, target);
+    act_single_qubit_gate(matrix_re, matrix_im, target);
 }
 
-void State::apply_rx_gate(double theta, UINT target)
+void State::act_rx_gate(double theta, UINT target)
 {
     double matrix_re[2][2] = {{std::cos(theta / 2), 0}, {0, std::cos(theta / 2)}};
     double matrix_im[2][2] = {{0, -std::sin(theta / 2)}, {-std::sin(theta / 2), 0}};
 
-    apply_single_qubit_gate(matrix_re, matrix_im, target);
+    act_single_qubit_gate(matrix_re, matrix_im, target);
 }
 
-void State::apply_sx_gate(UINT target)
+void State::act_sx_gate(UINT target)
 {
     static double matrix_re[2][2] = {{0.5, 0.5}, {0.5, 0.5}};
     static double matrix_im[2][2] = {{0.5, -0.5}, {-0.5, 0.5}};
 
-    apply_single_qubit_gate(matrix_re, matrix_im, target);
+    act_single_qubit_gate(matrix_re, matrix_im, target);
 }
 
-void State::apply_sy_gate(UINT target)
+void State::act_sy_gate(UINT target)
 {
     static double matrix_re[2][2] = {{0.5, -0.5}, {0.5, 0.5}};
     static double matrix_im[2][2] = {{0.5, -0.5}, {0.5, 0.5}};
 
-    apply_single_qubit_gate(matrix_re, matrix_im, target);
+    act_single_qubit_gate(matrix_re, matrix_im, target);
 }
 
-void State::apply_sw_gate(UINT target)
+void State::act_sw_gate(UINT target)
 {
     static double inv_sqrt2 = 1 / std::sqrt(2);
     static double matrix_re[2][2] = {{inv_sqrt2, -0.5}, {0.5, inv_sqrt2}};
     static double matrix_im[2][2] = {{0, -0.5}, {-0.5, 0}};
 
-    apply_single_qubit_gate(matrix_re, matrix_im, target);
+    act_single_qubit_gate(matrix_re, matrix_im, target);
 }
 
-void State::apply_t_gate(UINT target)
+void State::act_t_gate(UINT target)
 {
     static double matrix_re[2][2] = {{1, 0}, {0, std::sqrt(2) / 2}};
     static double matrix_im[2][2] = {{0, 0}, {0, std::sqrt(2) / 2}};
 
-    apply_single_qubit_gate(matrix_re, matrix_im, target);
+    act_single_qubit_gate(matrix_re, matrix_im, target);
 }
 
-void State::apply_cnot_gate(UINT target, UINT control)
+void State::act_cnot_gate(UINT target, UINT control)
 {
     static double matrix_re[4][4] = {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 0, 1}, {0, 0, 1, 0}};
     static double matrix_im[4][4] = {{0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}};
 
-    apply_two_qubit_gate(matrix_re, matrix_im, target, control);
+    act_two_qubit_gate(matrix_re, matrix_im, target, control);
 }
 
-void State::apply_cnot_gate_opt(UINT target, UINT control)
+void State::act_cnot_gate_opt(UINT target, UINT control)
 {
     ITYPE target_mask = 1ULL << target;
     ITYPE control_mask = 1ULL << control;
@@ -313,25 +313,25 @@ void State::apply_cnot_gate_opt(UINT target, UINT control)
     }
 }
 
-void State::apply_cz_gate(UINT target, UINT control)
+void State::act_cz_gate(UINT target, UINT control)
 {
     static double matrix_re[4][4] = {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, -1}};
     static double matrix_im[4][4] = {{0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}};
 
-    apply_two_qubit_gate(matrix_re, matrix_im, target, control);
+    act_two_qubit_gate(matrix_re, matrix_im, target, control);
 }
 
-void State::apply_iswaplike_gate(double theta, UINT target, UINT control)
+void State::act_iswaplike_gate(double theta, UINT target, UINT control)
 {
     double matrix_re[4][4] = {
         {1, 0, 0, 0}, {0, std::cos(theta), 0, 0}, {0, 0, std::cos(theta), 0}, {0, 0, 0, 1}};
     double matrix_im[4][4] = {
         {0, 0, 0, 0}, {0, 0, -std::sin(theta), 0}, {0, -std::sin(theta), 0, 0}, {0, 0, 0, 0}};
 
-    apply_two_qubit_gate(matrix_re, matrix_im, target, control);
+    act_two_qubit_gate(matrix_re, matrix_im, target, control);
 }
 
-void State::apply_cz_gate_opt(UINT target, UINT control)
+void State::act_cz_gate_opt(UINT target, UINT control)
 {
     ITYPE target_mask = 1ULL << target;
     ITYPE control_mask = 1ULL << control;
@@ -362,7 +362,7 @@ void State::apply_cz_gate_opt(UINT target, UINT control)
     }
 }
 
-void State::apply_depolarizing_gate_1q(UINT target, double prob)
+void State::act_depolarizing_gate_1q(UINT target, double prob)
 {
     std::vector<double> dice(n_);
     std::vector<double> noisy_samples;
@@ -392,21 +392,21 @@ void State::apply_depolarizing_gate_1q(UINT target, double prob)
             double tmp1_im = state_im_[sample + i1 * batch_size_];
 
             if (dice[sample] < prob / 3.0) {
-                // Apply X gate
+                // act X gate
                 state_re_[sample + i0 * batch_size_] = tmp1_re;
                 state_im_[sample + i0 * batch_size_] = tmp1_im;
 
                 state_re_[sample + i1 * batch_size_] = tmp0_re;
                 state_im_[sample + i1 * batch_size_] = tmp0_im;
             } else if (dice[sample] < prob * 2.0 / 3.0) {
-                // Apply Y gate
+                // act Y gate
                 state_re_[sample + i0 * batch_size_] = tmp1_im;
                 state_im_[sample + i0 * batch_size_] = -tmp1_re;
 
                 state_re_[sample + i1 * batch_size_] = tmp0_im;
                 state_im_[sample + i1 * batch_size_] = -tmp0_re;
             } else {
-                // Apply Z gate
+                // act Z gate
                 state_re_[sample + i1 * batch_size_] = -tmp1_re;
                 state_im_[sample + i1 * batch_size_] = -tmp1_im;
             }

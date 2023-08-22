@@ -13,7 +13,7 @@ TEST_CASE("RX gate")
     state.set_zero_state();
 
     for (int i = 0; i < N; i++) {
-        state.apply_rx_gate(1.0, i);
+        state.act_rx_gate(1.0, i);
     }
 
     for (int sample = 0; sample < BATCH_SIZE; sample++) {
@@ -38,7 +38,7 @@ TEST_CASE("H gate")
     state.set_zero_state();
 
     for (int i = 0; i < N; i++) {
-        state.apply_h_gate(i);
+        state.act_h_gate(i);
     }
 
     for (int sample = 0; sample < BATCH_SIZE; sample++) {
@@ -60,12 +60,12 @@ TEST_CASE("CZ gate")
     state.set_zero_state();
 
     for (int i = 0; i < N; i++) {
-        state.apply_h_gate(i);
+        state.act_h_gate(i);
     }
 
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < i; j++) {
-            state.apply_cz_gate(j, i);
+            state.act_cz_gate(j, i);
         }
     }
 

@@ -39,10 +39,10 @@ int main(int argc, char *argv[])
     for (int batch = 0; batch < N_SAMPLES; batch += BATCH_SIZE) {
         for (int d = 0; d < DEPTH; d++) {
             for (int i = 0; i < N_QUBITS; i++) {
-                state.apply_rx_gate(dist(engine), TARGET);
+                state.act_rx_gate(dist(engine), TARGET);
             }
             for (int i = 0; i < N_QUBITS; i++) {
-                state.apply_cnot_gate(TARGET, (TARGET + 1) % N_QUBITS);
+                state.act_cnot_gate(TARGET, (TARGET + 1) % N_QUBITS);
             }
         }
     }
@@ -53,10 +53,10 @@ int main(int argc, char *argv[])
         for (int batch = 0; batch < N_SAMPLES; batch += BATCH_SIZE) {
             for (int d = 0; d < DEPTH; d++) {
                 for (int i = 0; i < N_QUBITS; i++) {
-                    state.apply_rx_gate(dist(engine), TARGET);
+                    state.act_rx_gate(dist(engine), TARGET);
                 }
                 for (int i = 0; i < N_QUBITS; i++) {
-                    state.apply_cnot_gate(TARGET, (TARGET + 1) % N_QUBITS);
+                    state.act_cnot_gate(TARGET, (TARGET + 1) % N_QUBITS);
                 }
             }
         }
