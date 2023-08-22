@@ -5,6 +5,21 @@
 
 #include "gate.hpp"
 
+double State::get_probability(UINT i)
+{
+    double prob = 0.0;
+
+    for (UINT sample = 0; sample < batch_size_; sample++) {
+        double re = state_re_[sample + i * batch_size_];
+        double im = state_im_[sample + i * batch_size_];
+
+        prob += re * re + im * im;
+    }
+
+    return prob / batch_size_;
+}
+
+
 void State::set_zero_state()
 {
 #pragma omp parallel for
@@ -367,8 +382,8 @@ void State::act_depolarizing_gate_1q(UINT target, double prob)
     std::vector<double> dice(n_);
     std::vector<double> noisy_samples;
 
-    for (int sample = 0; sample < n_; sample++) {
-        if (dice[sample] < prob) {
+    for (int sample = 0; sample < batch_size_; sample++) {
+        if (dist_(mt_engine_) < prob) {
             noisy_samples.push_back(sample);
         }
     }

@@ -36,7 +36,7 @@ void act_random_1q_gate(State &state, double dice, UINT target)
 }
 
 void run_single_batch(State &state, UINT LENGTH, UINT DEPTH, std::mt19937 &engine,
-                      std::uniform_real_distribution<double> &dist)
+                      std::uniform_real_distribution<double> &dist, double noise_rate)
 {
     UINT N_QUBITS = LENGTH * LENGTH;
 
@@ -45,6 +45,10 @@ void run_single_batch(State &state, UINT LENGTH, UINT DEPTH, std::mt19937 &engin
 
         for (int i = 0; i < N_QUBITS; i++) {
             act_random_1q_gate(state, dice, i);
+
+            if (noise_rate > 0.0) {
+                state.act_depolarizing_gate_1q(i, noise_rate);
+            }
         }
 
         for (int i = 0; i < LENGTH; i++) {
@@ -69,14 +73,15 @@ void run_single_batch(State &state, UINT LENGTH, UINT DEPTH, std::mt19937 &engin
 
 int main(int argc, char *argv[])
 {
-    cxxopts::Options options("batched-qsim-ve", "Batched quantum circuit simulator for VE");
+    cxxopts::Options options("qsim-random-circuit", "Noisy random circuit simulator for VE");
     // clang-format off
     options.add_options()
         ("samples", "# of samples", cxxopts::value<int>()->default_value("1000"))
         ("depth", "Depth of the circuit", cxxopts::value<int>()->default_value("10"))
         ("length", "Side length of grid", cxxopts::value<int>()->default_value("4"))
         ("batch-size", "Batch size", cxxopts::value<int>()->default_value("1000"))
-        ("trials", "# of trials", cxxopts::value<int>()->default_value("10"));
+        ("trials", "# of trials", cxxopts::value<int>()->default_value("10"))
+        ("noise-rate", "Noise rate", cxxopts::value<double>()->default_value("0.1"));
     // clang-format on
 
     auto result = options.parse(argc, argv);
@@ -86,7 +91,7 @@ int main(int argc, char *argv[])
     const int LENGTH = result["length"].as<int>();
     const int BATCH_SIZE = result["batch-size"].as<int>();
     const int N_TRIALS = result["trials"].as<int>();
-
+    const double NOISE_RATE = result["noise-rate"].as<double>();
     const int N_QUBITS = LENGTH * LENGTH;
 
     std::random_device seed_gen;
@@ -98,7 +103,7 @@ int main(int argc, char *argv[])
     // Warmup run
     for (int batch = 0; batch < N_SAMPLES; batch += BATCH_SIZE) {
         state.set_zero_state();
-        run_single_batch(state, LENGTH, DEPTH, engine, dist);
+        run_single_batch(state, LENGTH, DEPTH, engine, dist, NOISE_RATE);
     }
 
     for (int trial = 0; trial < N_TRIALS; trial++) {
@@ -107,7 +112,7 @@ int main(int argc, char *argv[])
         auto start_time = std::chrono::high_resolution_clock::now();
 
         for (int batch = 0; batch < N_SAMPLES; batch += BATCH_SIZE) {
-            run_single_batch(state, LENGTH, DEPTH, engine, dist);
+            run_single_batch(state, LENGTH, DEPTH, engine, dist, NOISE_RATE);
         }
 
         auto end_time = std::chrono::high_resolution_clock::now();

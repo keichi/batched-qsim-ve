@@ -1,6 +1,7 @@
 #pragma once
 
 #include <complex>
+#include <random>
 #include <vector>
 
 using UINT = unsigned int;
@@ -14,16 +15,22 @@ protected:
     UINT batch_size_;
     UINT n_;
 
+    std::random_device seed_gen_;
+    std::mt19937 mt_engine_;
+    std::uniform_real_distribution<double> dist_;
+
 public:
     State(UINT n, UINT batch_size)
         : state_re_((1ULL << n) * batch_size), state_im_((1ULL << n) * batch_size), n_(n),
-          batch_size_(batch_size)
+          batch_size_(batch_size), mt_engine_(seed_gen_()), dist_(0.0, 1.0)
     {
     }
 
     double re(UINT sample, UINT i) { return state_re_[sample + i * batch_size_]; }
 
     double im(UINT sample, UINT i) { return state_im_[sample + i * batch_size_]; }
+
+    double get_probability(UINT i);
 
     void set_zero_state();
 
