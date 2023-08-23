@@ -5,7 +5,7 @@
 NEC Vector Engine
 
 ```
-cmake -DCMAKE_CXX_FLAGS="-std=c++17" \
+cmake -DCMAKE_CXX_FLAGS="-std=c++17 -stdlib=libc++" \
       -DCMAKE_TOOLCHAIN_FILE=/opt/nec/ve/share/cmake/toolchainVE.cmake \
       -DCMAKE_EXE_LINKER_FLAGS="-fopenmp" \
       -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \

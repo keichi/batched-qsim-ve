@@ -4,6 +4,10 @@
 #include <random>
 #include <vector>
 
+#ifdef __NEC__
+#include <asl.h>
+#endif
+
 using UINT = unsigned int;
 using ITYPE = unsigned long long;
 
@@ -15,6 +19,9 @@ protected:
     UINT batch_size_;
     UINT n_;
 
+#ifdef __NEC__
+    asl_random_t rng_;
+#endif
     std::random_device seed_gen_;
     std::mt19937 mt_engine_;
     std::uniform_real_distribution<double> dist_;
@@ -24,6 +31,20 @@ public:
         : state_re_((1ULL << n) * batch_size), state_im_((1ULL << n) * batch_size), n_(n),
           batch_size_(batch_size), mt_engine_(seed_gen_()), dist_(0.0, 1.0)
     {
+#ifdef __NEC__
+        if (!asl_library_is_initialized()) {
+            asl_library_initialize();
+        }
+
+        asl_random_create(&rng_, ASL_RANDOMMETHOD_MT19937);
+#endif
+    }
+
+    ~State()
+    {
+#ifdef __NEC__
+        asl_random_destroy(rng_);
+#endif
     }
 
     double re(UINT sample, UINT i) { return state_re_[sample + i * batch_size_]; }

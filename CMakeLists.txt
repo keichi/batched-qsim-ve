@@ -21,16 +21,22 @@ FetchContent_MakeAvailable(doctest)
 
 find_package(OpenMP REQUIRED)
 
-add_executable(qsim-bench src/main.cpp src/gate.cpp)
-target_link_libraries(qsim-bench cxxopts OpenMP::OpenMP_CXX)
+add_library(qsim src/gate.cpp)
+target_link_libraries(qsim OpenMP::OpenMP_CXX)
+if(CMAKE_CXX_COMPILER_ID STREQUAL "NEC")
+    target_link_libraries(qsim asl_openmp)
+endif()
 
-add_executable(qsim-random-circuit src/random_circuit.cpp src/gate.cpp)
-target_link_libraries(qsim-random-circuit cxxopts OpenMP::OpenMP_CXX)
+add_executable(qsim-bench src/main.cpp)
+target_link_libraries(qsim-bench qsim cxxopts OpenMP::OpenMP_CXX)
+
+add_executable(qsim-random-circuit src/random_circuit.cpp)
+target_link_libraries(qsim-random-circuit qsim cxxopts OpenMP::OpenMP_CXX)
 
 enable_testing()
 include(${doctest_SOURCE_DIR}/scripts/cmake/doctest.cmake)
 
-add_executable(qsim-test src/test.cpp src/gate.cpp)
-target_link_libraries(qsim-test doctest OpenMP::OpenMP_CXX)
+add_executable(qsim-test src/test.cpp)
+target_link_libraries(qsim-test qsim doctest OpenMP::OpenMP_CXX)
 
 doctest_discover_tests(qsim-test)

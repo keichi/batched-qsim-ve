@@ -379,15 +379,24 @@ void State::act_cz_gate_opt(UINT target, UINT control)
 
 void State::act_depolarizing_gate_1q(UINT target, double prob)
 {
-    std::vector<double> dice(n_);
+    std::vector<double> dice(batch_size_);
     std::vector<double> noisy_samples;
 
+#ifdef __NEC__
+    asl_random_generate_d(rng_, n_, dice.data());
+#else
     for (int sample = 0; sample < batch_size_; sample++) {
-        if (dist_(mt_engine_) < prob) {
+        dice[sample] = dist_(mt_engine_);
+    }
+#endif
+
+    for (int sample = 0; sample < batch_size_; sample++) {
+        if (dice[sample] < prob) {
             noisy_samples.push_back(sample);
         }
     }
 
+    UINT n_noisy_samples = noisy_samples.size();
     ITYPE mask = 1ULL << target;
     ITYPE lo_mask = mask - 1;
     ITYPE hi_mask = ~lo_mask;
@@ -398,7 +407,7 @@ void State::act_depolarizing_gate_1q(UINT target, double prob)
         ITYPE i1 = i0 | mask;
 
 #pragma omp simd
-        for (int j = 0; j < noisy_samples.size(); j++) {
+        for (int j = 0; j < n_noisy_samples; j++) {
             int sample = noisy_samples[j];
 
             double tmp0_re = state_re_[sample + i0 * batch_size_];

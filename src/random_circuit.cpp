@@ -9,7 +9,7 @@
 
 UINT grid_to_id(UINT x, UINT y, UINT length) { return x + length * y; }
 
-bool in_grid(UINT x, UINT y, UINT length) { return x < length && y < length && x >= 0 && y >= 0; }
+bool in_grid(UINT x, UINT y, UINT length) { return x < length && y < length; }
 
 void act_2q_gate(State &state, UINT LENGTH, UINT x1, UINT y1, UINT x2, UINT y2)
 {
