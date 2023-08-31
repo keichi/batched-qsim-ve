@@ -437,3 +437,9 @@ void State::act_depolarizing_gate_1q(UINT target, double prob)
         }
     }
 }
+
+void State::act_depolarizing_gate_2q(UINT target, UINT control, double prob)
+{
+    act_depolarizing_gate_1q(target, 1.0 - std::sqrt(1.0 - prob));
+    act_depolarizing_gate_1q(control, 1.0 - std::sqrt(1.0 - prob));
+}

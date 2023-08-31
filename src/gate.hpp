@@ -95,4 +95,6 @@ public:
     void act_cz_gate_opt(UINT target, UINT control);
 
     void act_depolarizing_gate_1q(UINT target, double prob);
+
+    void act_depolarizing_gate_2q(UINT target, UINT control, double prob);
 };

@@ -11,7 +11,7 @@ UINT grid_to_id(UINT x, UINT y, UINT length) { return x + length * y; }
 
 bool in_grid(UINT x, UINT y, UINT length) { return x < length && y < length; }
 
-void act_2q_gate(State &state, UINT LENGTH, UINT x1, UINT y1, UINT x2, UINT y2)
+void act_2q_gate(State &state, UINT LENGTH, UINT x1, UINT y1, UINT x2, UINT y2, double noise_rate)
 {
     if (!in_grid(x1, y1, LENGTH) || !in_grid(x2, y2, LENGTH)) {
         return;
@@ -22,9 +22,13 @@ void act_2q_gate(State &state, UINT LENGTH, UINT x1, UINT y1, UINT x2, UINT y2)
     UINT control = grid_to_id(x2, y2, LENGTH);
 
     state.act_iswaplike_gate(theta, target, control);
+
+    if (noise_rate) {
+        state.act_depolarizing_gate_2q(target, control, noise_rate);
+    }
 }
 
-void act_random_1q_gate(State &state, double dice, UINT target)
+void act_random_1q_gate(State &state, double dice, UINT target, double noise_rate)
 {
     if (dice < 1.0 / 3.0) {
         state.act_sx_gate(target);
@@ -32,6 +36,10 @@ void act_random_1q_gate(State &state, double dice, UINT target)
         state.act_sy_gate(target);
     } else {
         state.act_sw_gate(target);
+    }
+
+    if (noise_rate > 0.0) {
+        state.act_depolarizing_gate_1q(target, noise_rate);
     }
 }
 
@@ -44,11 +52,7 @@ void run_single_batch(State &state, UINT LENGTH, UINT DEPTH, std::mt19937 &engin
         double dice = dist(engine);
 
         for (int i = 0; i < N_QUBITS; i++) {
-            act_random_1q_gate(state, dice, i);
-
-            if (noise_rate > 0.0) {
-                state.act_depolarizing_gate_1q(i, noise_rate);
-            }
+            act_random_1q_gate(state, dice, i, noise_rate);
         }
 
         for (int i = 0; i < LENGTH; i++) {
@@ -58,13 +62,13 @@ void run_single_batch(State &state, UINT LENGTH, UINT DEPTH, std::mt19937 &engin
                 }
 
                 if (d % 4 == 0) {
-                    act_2q_gate(state, LENGTH, i, j, i + 1, j);
+                    act_2q_gate(state, LENGTH, i, j, i + 1, j, noise_rate);
                 } else if (d % 4 == 1) {
-                    act_2q_gate(state, LENGTH, i, j, i - 1, j);
+                    act_2q_gate(state, LENGTH, i, j, i - 1, j, noise_rate);
                 } else if (d % 4 == 2) {
-                    act_2q_gate(state, LENGTH, i, j, i, j + 1);
+                    act_2q_gate(state, LENGTH, i, j, i, j + 1, noise_rate);
                 } else if (d % 4 == 3) {
-                    act_2q_gate(state, LENGTH, i, j, i, j - 1);
+                    act_2q_gate(state, LENGTH, i, j, i, j - 1, noise_rate);
                 }
             }
         }
