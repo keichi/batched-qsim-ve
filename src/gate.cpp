@@ -19,7 +19,6 @@ double State::get_probability(UINT i)
     return prob / batch_size_;
 }
 
-
 void State::set_zero_state()
 {
 #pragma omp parallel for
@@ -247,6 +246,22 @@ void State::act_rx_gate(double theta, UINT target)
 {
     double matrix_re[2][2] = {{std::cos(theta / 2), 0}, {0, std::cos(theta / 2)}};
     double matrix_im[2][2] = {{0, -std::sin(theta / 2)}, {-std::sin(theta / 2), 0}};
+
+    act_single_qubit_gate(matrix_re, matrix_im, target);
+}
+
+void State::act_ry_gate(double theta, UINT target)
+{
+    double matrix_re[2][2] = {{std::cos(theta / 2), 0}, {0, std::cos(theta / 2)}};
+    double matrix_im[2][2] = {{0, -std::sin(theta / 2)}, {-std::sin(theta / 2), 0}};
+
+    act_single_qubit_gate(matrix_re, matrix_im, target);
+}
+
+void State::act_rz_gate(double theta, UINT target)
+{
+    double matrix_re[2][2] = {{std::cos(theta / 2), 0}, {0, std::cos(theta / 2)}};
+    double matrix_im[2][2] = {{-std::sin(theta / 2), 0}, {0, std::sin(theta / 2)}};
 
     act_single_qubit_gate(matrix_re, matrix_im, target);
 }

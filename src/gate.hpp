@@ -72,9 +72,9 @@ public:
 
     void act_rx_gate(double theta, UINT target);
 
-    void act_rx_gate_soa1(double theta, UINT target);
+    void act_ry_gate(double theta, UINT target);
 
-    void act_rx_gate_aos(double theta, UINT target);
+    void act_rz_gate(double theta, UINT target);
 
     void act_sx_gate(UINT target);
 
