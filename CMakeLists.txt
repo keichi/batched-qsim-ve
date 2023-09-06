@@ -27,7 +27,7 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "NEC")
     target_link_libraries(qsim asl_openmp)
 endif()
 
-add_executable(qsim-gate-bench src/main.cpp)
+add_executable(qsim-gate-bench src/gate_benchmark.cpp)
 target_link_libraries(qsim-gate-bench qsim cxxopts OpenMP::OpenMP_CXX)
 
 add_executable(qsim-random-circuit src/random_circuit.cpp)
