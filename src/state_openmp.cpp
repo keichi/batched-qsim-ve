@@ -1,4 +1,5 @@
 #pragma _NEC options "-O4 -finline-functions -report-all"
+#pragma _NEC options "-fdiag-inline=0 -fdiag-parallel=0 -fdiag-vector=0"
 
 #include <algorithm>
 #include <cmath>
@@ -444,7 +445,7 @@ public:
         std::vector<double> noisy_samples;
 
 #ifdef __NEC__
-        asl_random_generate_d(rng_, n_, dice.data());
+        asl_random_generate_d(rng_, batch_size_, dice.data());
 #else
         for (int sample = 0; sample < batch_size_; sample++) {
             dice[sample] = dist_(mt_engine_);
