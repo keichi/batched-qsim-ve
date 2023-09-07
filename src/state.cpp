@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <cmath>
 
-#include "gate.hpp"
+#include "state.hpp"
 
 double State::get_probability(UINT i)
 {

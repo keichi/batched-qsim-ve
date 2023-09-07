@@ -1,7 +1,7 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest/doctest.h>
 
-#include "gate.hpp"
+#include "state.hpp"
 
 TEST_CASE("RX gate")
 {

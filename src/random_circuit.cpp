@@ -5,7 +5,7 @@
 
 #include <cxxopts.hpp>
 
-#include "gate.hpp"
+#include "state.hpp"
 
 UINT grid_to_id(UINT x, UINT y, UINT width) { return x + width * y; }
 

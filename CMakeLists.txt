@@ -21,7 +21,7 @@ FetchContent_MakeAvailable(doctest)
 
 find_package(OpenMP REQUIRED)
 
-add_library(qsim src/gate.cpp)
+add_library(qsim src/state.cpp)
 target_link_libraries(qsim OpenMP::OpenMP_CXX)
 if(CMAKE_CXX_COMPILER_ID STREQUAL "NEC")
     target_link_libraries(qsim asl_openmp)

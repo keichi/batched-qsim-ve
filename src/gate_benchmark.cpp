@@ -5,7 +5,7 @@
 
 #include <cxxopts.hpp>
 
-#include "gate.hpp"
+#include "state.hpp"
 
 int main(int argc, char *argv[])
 {
