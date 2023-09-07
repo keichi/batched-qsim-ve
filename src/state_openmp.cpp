@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <iostream>
 #include <random>
 #include <vector>
 
@@ -442,7 +443,7 @@ public:
     void act_depolarizing_gate_1q(UINT target, double prob)
     {
         std::vector<double> dice(batch_size_);
-        std::vector<double> noisy_samples;
+        std::vector<int> x_samples, y_samples, z_samples;
 
 #ifdef __NEC__
         asl_random_generate_d(rng_, batch_size_, dice.data());
@@ -453,12 +454,19 @@ public:
 #endif
 
         for (int sample = 0; sample < batch_size_; sample++) {
-            if (dice[sample] < prob) {
-                noisy_samples.push_back(sample);
+            if (dice[sample] < prob / 3.0) {
+                x_samples.push_back(sample);
+            } else if (dice[sample] < prob * 2.0 / 3.0) {
+                y_samples.push_back(sample);
+            } else if (dice[sample] < prob) {
+                z_samples.push_back(sample);
             }
         }
 
-        UINT n_noisy_samples = noisy_samples.size();
+        UINT n_x_samples = x_samples.size();
+        UINT n_y_samples = y_samples.size();
+        UINT n_z_samples = z_samples.size();
+
         ITYPE mask = 1ULL << target;
         ITYPE lo_mask = mask - 1;
         ITYPE hi_mask = ~lo_mask;
@@ -469,33 +477,44 @@ public:
             ITYPE i1 = i0 | mask;
 
 #pragma omp simd
-            for (int j = 0; j < n_noisy_samples; j++) {
-                int sample = noisy_samples[j];
+            for (int j = 0; j < n_x_samples; j++) {
+                int sample = x_samples[j];
 
                 double tmp0_re = state_re_[sample + i0 * batch_size_];
                 double tmp0_im = state_im_[sample + i0 * batch_size_];
                 double tmp1_re = state_re_[sample + i1 * batch_size_];
                 double tmp1_im = state_im_[sample + i1 * batch_size_];
 
-                if (dice[sample] < prob / 3.0) {
-                    // act X gate
-                    state_re_[sample + i0 * batch_size_] = tmp1_re;
-                    state_im_[sample + i0 * batch_size_] = tmp1_im;
+                state_re_[sample + i0 * batch_size_] = tmp1_re;
+                state_im_[sample + i0 * batch_size_] = tmp1_im;
+                state_re_[sample + i1 * batch_size_] = tmp0_re;
+                state_im_[sample + i1 * batch_size_] = tmp0_im;
+            }
 
-                    state_re_[sample + i1 * batch_size_] = tmp0_re;
-                    state_im_[sample + i1 * batch_size_] = tmp0_im;
-                } else if (dice[sample] < prob * 2.0 / 3.0) {
-                    // act Y gate
-                    state_re_[sample + i0 * batch_size_] = tmp1_im;
-                    state_im_[sample + i0 * batch_size_] = -tmp1_re;
+#pragma omp simd
+            for (int j = 0; j < n_y_samples; j++) {
+                int sample = y_samples[j];
 
-                    state_re_[sample + i1 * batch_size_] = tmp0_im;
-                    state_im_[sample + i1 * batch_size_] = -tmp0_re;
-                } else {
-                    // act Z gate
-                    state_re_[sample + i1 * batch_size_] = -tmp1_re;
-                    state_im_[sample + i1 * batch_size_] = -tmp1_im;
-                }
+                double tmp0_re = state_re_[sample + i0 * batch_size_];
+                double tmp0_im = state_im_[sample + i0 * batch_size_];
+                double tmp1_re = state_re_[sample + i1 * batch_size_];
+                double tmp1_im = state_im_[sample + i1 * batch_size_];
+
+                state_re_[sample + i0 * batch_size_] = tmp1_im;
+                state_im_[sample + i0 * batch_size_] = -tmp1_re;
+                state_re_[sample + i1 * batch_size_] = tmp0_im;
+                state_im_[sample + i1 * batch_size_] = -tmp0_re;
+            }
+
+#pragma omp simd
+            for (int j = 0; j < n_z_samples; j++) {
+                int sample = z_samples[j];
+
+                double tmp1_re = state_re_[sample + i1 * batch_size_];
+                double tmp1_im = state_im_[sample + i1 * batch_size_];
+
+                state_re_[sample + i1 * batch_size_] = -tmp1_re;
+                state_im_[sample + i1 * batch_size_] = -tmp1_im;
             }
         }
     }
