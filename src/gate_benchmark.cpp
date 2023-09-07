@@ -77,6 +77,8 @@ int main(int argc, char *argv[])
             }
         }
 
+        state.synchronize();
+
         auto end_time = std::chrono::high_resolution_clock::now();
         auto duration =
             std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);

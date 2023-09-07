@@ -52,6 +52,8 @@ public:
 
     void act_depolarizing_gate_2q(UINT target, UINT control, double prob);
 
+    void synchronize();
+
 private:
     class Impl;
     std::shared_ptr<Impl> impl_;

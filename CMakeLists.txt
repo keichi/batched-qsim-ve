@@ -19,24 +19,33 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(doctest)
 
-find_package(OpenMP REQUIRED)
+include(CheckLanguage)
+check_language(CUDA)
 
-add_library(qsim src/state_openmp.cpp)
-target_link_libraries(qsim OpenMP::OpenMP_CXX)
-if(CMAKE_CXX_COMPILER_ID STREQUAL "NEC")
-    target_link_libraries(qsim asl_openmp)
+if(CMAKE_CUDA_COMPILER)
+    enable_language(CUDA)
+    add_library(qsim src/state_custatevec.cu)
+    target_link_libraries(qsim custatevec)
+else()
+    find_package(OpenMP REQUIRED)
+    add_library(qsim src/state_openmp.cpp)
+    target_link_libraries(qsim OpenMP::OpenMP_CXX)
+
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "NEC")
+        target_link_libraries(qsim asl_openmp)
+    endif()
 endif()
 
 add_executable(qsim-gate-bench src/gate_benchmark.cpp)
-target_link_libraries(qsim-gate-bench qsim cxxopts OpenMP::OpenMP_CXX)
+target_link_libraries(qsim-gate-bench qsim cxxopts)
 
 add_executable(qsim-random-circuit src/random_circuit.cpp)
-target_link_libraries(qsim-random-circuit qsim cxxopts OpenMP::OpenMP_CXX)
+target_link_libraries(qsim-random-circuit qsim cxxopts)
 
 enable_testing()
 include(${doctest_SOURCE_DIR}/scripts/cmake/doctest.cmake)
 
 add_executable(qsim-test src/test.cpp)
-target_link_libraries(qsim-test qsim doctest OpenMP::OpenMP_CXX)
+target_link_libraries(qsim-test qsim doctest)
 
 doctest_discover_tests(qsim-test)

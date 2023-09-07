@@ -3,6 +3,26 @@
 
 #include "state.hpp"
 
+TEST_CASE("Set zero state")
+{
+    const int N = 2;
+    const int BATCH_SIZE = 10;
+
+    State state(N, BATCH_SIZE);
+
+    state.set_zero_state();
+
+    for (int sample = 0; sample < BATCH_SIZE; sample++) {
+        REQUIRE(state.re(sample, 0) == doctest::Approx(1.0));
+        REQUIRE(state.im(sample, 0) == doctest::Approx(0.0));
+
+        for (int i = 1; i < 1ULL << N; i++) {
+            REQUIRE(state.re(sample, i) == doctest::Approx(0.0));
+            REQUIRE(state.im(sample, i) == doctest::Approx(0.0));
+        }
+    }
+}
+
 TEST_CASE("RX gate")
 {
     const int N = 2;
@@ -43,12 +63,11 @@ TEST_CASE("H gate")
 
     for (int sample = 0; sample < BATCH_SIZE; sample++) {
         for (int i = 0; i < N; i++) {
-            REQUIRE(state.re(sample, i)== doctest::Approx(0.25));
-            REQUIRE(state.im(sample, i)== doctest::Approx(0.0));
+            REQUIRE(state.re(sample, i) == doctest::Approx(0.25));
+            REQUIRE(state.im(sample, i) == doctest::Approx(0.0));
         }
     }
 }
-
 
 TEST_CASE("CZ gate")
 {

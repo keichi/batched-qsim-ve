@@ -338,8 +338,9 @@ public:
 
     void act_t_gate(UINT target)
     {
-        static double matrix_re[2][2] = {{1, 0}, {0, std::sqrt(2) / 2}};
-        static double matrix_im[2][2] = {{0, 0}, {0, std::sqrt(2) / 2}};
+        static double inv_sqrt2 = 1 / std::sqrt(2);
+        static double matrix_re[2][2] = {{1, 0}, {0, inv_sqrt2}};
+        static double matrix_im[2][2] = {{0, 0}, {0, inv_sqrt2}};
 
         act_single_qubit_gate(matrix_re, matrix_im, target);
     }
@@ -558,3 +559,5 @@ void State::act_depolarizing_gate_2q(UINT target, UINT control, double prob)
 {
     impl_->act_depolarizing_gate_2q(target, control, prob);
 }
+
+void State::synchronize() {}
