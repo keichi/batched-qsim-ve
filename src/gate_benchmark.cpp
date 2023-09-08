@@ -20,6 +20,7 @@ int main(int argc, char *argv[])
         ("batch-size", "Batch size", cxxopts::value<int>()->default_value("1000"))
         ("trials", "# of trials", cxxopts::value<int>()->default_value("10"))
         ("gate", "Gate to act", cxxopts::value<std::string>()->default_value("RX"))
+        ("noise-rate", "Noise rate", cxxopts::value<double>()->default_value("0.1"))
         ("help", "Print usage");
     // clang-format on
 
@@ -32,7 +33,14 @@ int main(int argc, char *argv[])
     int n_qubits = result["qubits"].as<int>();
     int batch_size = result["batch-size"].as<int>();
     int n_trials = result["trials"].as<int>();
+    double noise_rate = result["noise-rate"].as<double>();
     std::string gate_name = result["gate"].as<std::string>();
+
+    if (gate_name != "RX" && gate_name != "H" && gate_name != "T" && gate_name != "CNOT" &&
+        gate_name != "NOISE") {
+        std::cout << "Gate type \"" << gate_name << "\" is unsupported" << std::endl;
+        return 0;
+    }
 
     if (result.count("help")) {
         std::cout << options.help() << std::endl;
@@ -56,6 +64,8 @@ int main(int argc, char *argv[])
                 state.act_t_gate(target);
             } else if (gate_name == "CNOT") {
                 state.act_cnot_gate(target, control);
+            } else if (gate_name == "NOISE") {
+                state.act_depolarizing_gate_1q(target, noise_rate);
             }
         }
     }
@@ -73,6 +83,8 @@ int main(int argc, char *argv[])
                     state.act_t_gate(target);
                 } else if (gate_name == "CNOT") {
                     state.act_cnot_gate(target, control);
+                } else if (gate_name == "NOISE") {
+                    state.act_depolarizing_gate_1q(target, noise_rate);
                 }
             }
         }
