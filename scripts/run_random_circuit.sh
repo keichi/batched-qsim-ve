@@ -8,7 +8,7 @@ export OMP_PROC_BIND=true
 
 unset VE_PROGINF
 
-cd $PBS_O_WORKDIR
+[[ $PBS_O_WORKDIR ]] && cd $PBS_O_WORKDIR
 
 echo -e "noise_rate\tsamples\tbatch_size\truntime [s]"
 
