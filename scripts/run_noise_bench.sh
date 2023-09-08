@@ -14,7 +14,7 @@ echo -e "noise_rate\tqubits\tsamples\tbatch_size\truntime [s]"
 
 samples=100000
 
-for noise_rate in 0.001 0005 0.01 0.05 0.1
+for noise_rate in 0.001 0.005 0.01 0.05 0.1
 do
     for qubits in $(seq 8 14)
         do
