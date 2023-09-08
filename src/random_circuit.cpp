@@ -47,12 +47,12 @@ void act_random_1q_gate(State &state, double dice, UINT target, double noise_rat
 void run_single_batch(State &state, UINT width, UINT height, UINT DEPTH, std::mt19937 &engine,
                       std::uniform_real_distribution<double> &dist, double noise_rate)
 {
-    UINT N_QUBITS = width * height;
+    UINT n_qubits = width * height;
 
     for (int d = 0; d < DEPTH; d++) {
         double dice = dist(engine);
 
-        for (int i = 0; i < N_QUBITS; i++) {
+        for (int i = 0; i < n_qubits; i++) {
             act_random_1q_gate(state, dice, i, noise_rate);
         }
 
