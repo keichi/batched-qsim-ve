@@ -54,20 +54,16 @@ int main(int argc, char *argv[])
     State state(n_qubits, batch_size);
 
     // Warmup run
-    for (int batch = 0; batch < n_samples; batch += batch_size) {
-        for (int d = 0; d < depth; d++) {
-            if (gate_name == "RX") {
-                state.act_rx_gate(dist(engine), target);
-            } else if (gate_name == "H") {
-                state.act_h_gate(target);
-            } else if (gate_name == "T") {
-                state.act_t_gate(target);
-            } else if (gate_name == "CNOT") {
-                state.act_cnot_gate(target, control);
-            } else if (gate_name == "NOISE") {
-                state.act_depolarizing_gate_1q(target, noise_rate);
-            }
-        }
+    if (gate_name == "RX") {
+        state.act_rx_gate(dist(engine), target);
+    } else if (gate_name == "H") {
+        state.act_h_gate(target);
+    } else if (gate_name == "T") {
+        state.act_t_gate(target);
+    } else if (gate_name == "CNOT") {
+        state.act_cnot_gate(target, control);
+    } else if (gate_name == "NOISE") {
+        state.act_depolarizing_gate_1q(target, noise_rate);
     }
 
     for (int trial = 0; trial < n_trials; trial++) {

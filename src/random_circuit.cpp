@@ -88,6 +88,7 @@ int main(int argc, char *argv[])
         ("batch-size", "Batch size", cxxopts::value<int>()->default_value("1000"))
         ("trials", "# of trials", cxxopts::value<int>()->default_value("10"))
         ("noise-rate", "Noise rate", cxxopts::value<double>()->default_value("0.1"))
+        ("output-probs", "Output probablities", cxxopts::value<bool>())
         ("help", "Print usage");
     // clang-format on
 
@@ -100,6 +101,7 @@ int main(int argc, char *argv[])
     int batch_size = result["batch-size"].as<int>();
     int n_trials = result["trials"].as<int>();
     double noise_rate = result["noise-rate"].as<double>();
+    bool output_probs = result["output-probs"].as<bool>();
     int n_qubits = width * height;
 
     if (result.count("help")) {
@@ -111,21 +113,29 @@ int main(int argc, char *argv[])
     std::mt19937 engine(seed_gen());
     std::uniform_real_distribution<double> dist(0, 1);
     std::vector<double> durations;
+
     State state(n_qubits, batch_size);
+    std::vector<double> probs(1ULL << n_qubits);
 
     // Warmup run
-    for (int batch = 0; batch < n_samples; batch += batch_size) {
-        state.set_zero_state();
-        run_single_batch(state, width, height, depth, engine, dist, noise_rate);
-    }
+    run_single_batch(state, width, height, depth, engine, dist, noise_rate);
 
     for (int trial = 0; trial < n_trials; trial++) {
-        state.set_zero_state();
 
         auto start_time = std::chrono::high_resolution_clock::now();
 
         for (int batch = 0; batch < n_samples; batch += batch_size) {
+            if (output_probs) {
+                state.set_zero_state();
+            }
+
             run_single_batch(state, width, height, depth, engine, dist, noise_rate);
+
+            if (output_probs) {
+                for (int i = 0; i < 1ULL << n_qubits; i++) {
+                    probs[i] += state.get_probability(i);
+                }
+            }
         }
 
         state.synchronize();
@@ -134,6 +144,12 @@ int main(int argc, char *argv[])
         auto duration =
             std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
         durations.push_back(duration.count() / 1e6);
+
+        if (output_probs) {
+            for (int i = 0; i < 1ULL << n_qubits; i++) {
+                std::cout << probs[i] * (1ULL << n_qubits) / (n_samples / batch_size) << std::endl;
+            }
+        }
     }
 
     double average = 0.0;
@@ -142,7 +158,9 @@ int main(int argc, char *argv[])
     }
     average /= n_trials;
 
-    std::cout << average << std::endl;
+    if (!output_probs) {
+        std::cout << average << std::endl;
+    }
 
     return 0;
 }
