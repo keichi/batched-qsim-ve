@@ -22,7 +22,7 @@ do
         do
             echo -n -e "$noise_rate\t$qubits\t$samples\t$batch_size\t"
             ../build/qsim-gate-bench --qubits $qubits --samples $samples --batch-size $batch_size \
-                                     --noise-rate $noise_rate
+                                     --noise-rate $noise_rate --gate NOISE
         done
     done
 done
