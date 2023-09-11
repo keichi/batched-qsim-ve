@@ -2,7 +2,7 @@
 
 ## Building
 
-NEC Vector Engine
+### NEC Vector Engine
 
 ```
 cmake -DCMAKE_CXX_FLAGS="-std=c++17" \
@@ -12,7 +12,7 @@ cmake -DCMAKE_CXX_FLAGS="-std=c++17" \
       ..
 ```
 
-NVIDIA A100
+### NVIDIA A100
 
 Make sure cuStateVec v1.4.0 or later is installed.
 
@@ -22,7 +22,9 @@ cmake -DCMAKE_CUDA_ARCHITECTURES=80 \
       ..
 ```
 
-Apple Silicon
+### Apple Silicon
+
+Make sure libomp is installed.
 
 ```
 cmake -DCMAKE_CXX_FLAGS="-I$(brew --prefix libomp)/include -Xpreprocessor -fopenmp" \
@@ -32,7 +34,7 @@ cmake -DCMAKE_CXX_FLAGS="-I$(brew --prefix libomp)/include -Xpreprocessor -fopen
       ..
 ```
 
-Intel CPU
+### Intel CPU
 
 ```
 cmake -DCMAKE_CXX_COMPILER=icpc \
