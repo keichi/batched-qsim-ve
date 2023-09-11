@@ -12,6 +12,16 @@ cmake -DCMAKE_CXX_FLAGS="-std=c++17" \
       ..
 ```
 
+NVIDIA A100
+
+Make sure cuStateVec v1.4.0 or later is installed.
+
+```
+cmake -DCMAKE_CUDA_ARCHITECTURES=80 \
+      -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+      ..
+```
+
 Apple Silicon
 
 ```
