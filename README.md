@@ -42,3 +42,12 @@ cmake -DCMAKE_CXX_COMPILER=icpc \
       -DCMAKE_CXX_FLAGS="-axCORE-AVX512" \
       ..
 ```
+
+## Citing
+
+Please cite the following paper if you use batched-qsim-ve:
+
+- Keichi Takahashi, Toshio Mori, Hiroyuki Takizawa, "Prototype of a Batched Quantum Circuit
+  Simulator for the Vector Engine," 4th International Workshop on Quantum Computing Software held in
+  conjunction with SC23: The International Conference for High Performance Computing, Networking,
+  Storage, and Analysis, Nov. 2023. [10.1145/3624062.3624226](https://doi.org/10.1145/3624062.3624226)
