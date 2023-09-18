@@ -23,3 +23,16 @@ for qubits in $(seq 8 14)
                                  --gate CNOT --target 1 --control 0
     done
 done
+
+for qubits in $(seq 15 25)
+    do
+    for batch_size in 100 200 500 1000 2000 5000 10000 20000 50000 100000
+    do
+        if [[ 80 * 1000 * 1000 * 1000 -lt 16 * 2 ** $qubits * $batch_size ]]; then
+            continue
+        fi
+        echo -n -e "$qubits\t$samples\t$batch_size\t"
+        ../build/qsim-gate-bench --qubits $qubits --samples $samples --batch-size $batch_size \
+                                 --gate CNOT --target 1 --control 0
+    done
+done
