@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(batched-qsim CXX)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 
 include(FetchContent)
 
@@ -41,6 +41,9 @@ target_link_libraries(qsim-gate-bench qsim cxxopts)
 
 add_executable(qsim-random-circuit src/random_circuit.cpp)
 target_link_libraries(qsim-random-circuit qsim cxxopts)
+
+add_executable(qsim-vqe src/vqe.cpp)
+target_link_libraries(qsim-vqe qsim)
 
 enable_testing()
 include(${doctest_SOURCE_DIR}/scripts/cmake/doctest.cmake)
