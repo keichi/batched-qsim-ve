@@ -52,6 +52,14 @@ public:
         HANDLE_ERROR(custatevecDestroy(handle_));
     }
 
+    std::complex<double> amplitude(UINT sample, UINT i)
+    {
+        cuDoubleComplex c;
+        HANDLE_CUDA_ERROR(cudaMemcpy(&c, state_ + (1ULL << n_) * sample + i,
+                                     sizeof(cuDoubleComplex), cudaMemcpyDeviceToHost));
+        return std::complex(cuCreal(c), cuCimg(c));
+    }
+
     double re(UINT sample, UINT i)
     {
         cuDoubleComplex c;
@@ -72,6 +80,10 @@ public:
     {
         // TODO
     }
+
+    UINT dim() const { return 1ULL << n_; }
+
+    UINT batch_size() const { return batch_size_; }
 
     void set_zero_state()
     {
@@ -340,11 +352,20 @@ State::State(UINT n, UINT batch_size) : impl_(std::make_shared<Impl>(n, batch_si
 
 State::~State() {}
 
-double State::re(UINT sample, UINT i) { return impl_->re(sample, i); }
+std::complex<double> State::amplitude(UINT sample, UINT i) const
+{
+    return impl_->amplitude(sample, i);
+}
 
-double State::im(UINT sample, UINT i) { return impl_->im(sample, i); }
+double State::re(UINT sample, UINT i) const { return impl_->re(sample, i); }
 
-double State::get_probability(UINT i) { return impl_->get_probability(i); }
+double State::im(UINT sample, UINT i) const { return impl_->im(sample, i); }
+
+double State::get_probability(UINT i) const { return impl_->get_probability(i); }
+
+UINT State::dim() const const { return impl_->dim(); }
+
+UINT State::batch_size() const { return impl_->batch_size(); }
 
 void State::set_zero_state() { return impl_->set_zero_state(); }
 

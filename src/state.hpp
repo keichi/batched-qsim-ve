@@ -1,5 +1,6 @@
 #pragma once
 
+#include <complex>
 #include <memory>
 
 using UINT = unsigned int;
@@ -12,11 +13,17 @@ public:
 
     ~State();
 
-    double re(UINT sample, UINT i);
+    std::complex<double> amplitude(UINT sample, UINT i) const;
 
-    double im(UINT sample, UINT i);
+    double re(UINT sample, UINT i) const;
 
-    double get_probability(UINT i);
+    double im(UINT sample, UINT i) const;
+
+    double get_probability(UINT i) const;
+
+    UINT dim() const;
+
+    UINT batch_size() const;
 
     void set_zero_state();
 
