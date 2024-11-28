@@ -405,6 +405,41 @@ public:
         act_two_qubit_gate(matrix_re, matrix_im, target, control);
     }
 
+    void act_cx_gate_opt(UINT target, UINT control)
+    {
+        ITYPE target_mask = 1ULL << target;
+        ITYPE control_mask = 1ULL << control;
+
+        UINT min_qubit_index = std::min(target, control);
+        UINT max_qubit_index = std::max(target, control);
+        ITYPE min_qubit_mask = 1ULL << min_qubit_index;
+        ITYPE max_qubit_mask = 1ULL << (max_qubit_index - 1);
+        ITYPE lo_mask = min_qubit_mask - 1;
+        ITYPE mid_mask = (max_qubit_mask - 1) ^ lo_mask;
+        ITYPE hi_mask = ~(max_qubit_mask - 1);
+
+#pragma omp parallel for
+        for (ITYPE i = 0; i < 1ULL << (n_ - 2); i++) {
+            ITYPE i00 = ((i & hi_mask) << 2) | ((i & mid_mask) << 1) | ((i & lo_mask));
+            ITYPE i01 = i00 | target_mask;
+            ITYPE i10 = i00 | control_mask;
+            ITYPE i11 = i00 | control_mask | target_mask;
+
+#pragma omp simd
+            for (int sample = 0; sample < batch_size_; sample++) {
+                double tmp10_re = state_re_[sample + i10 * batch_size_];
+                double tmp10_im = state_im_[sample + i10 * batch_size_];
+                double tmp11_re = state_re_[sample + i11 * batch_size_];
+                double tmp11_im = state_im_[sample + i11 * batch_size_];
+
+                state_re_[sample + i10 * batch_size_] = tmp11_re;
+                state_im_[sample + i10 * batch_size_] = tmp11_im;
+                state_re_[sample + i11 * batch_size_] = tmp10_re;
+                state_im_[sample + i11 * batch_size_] = tmp10_im;
+            }
+        }
+    }
+
     void act_cz_gate_opt(UINT target, UINT control)
     {
         ITYPE target_mask = 1ULL << target;
@@ -563,6 +598,8 @@ void State::act_iswaplike_gate(double theta, UINT target, UINT control)
 
     impl_->act_iswaplike_gate(theta, target, control);
 }
+
+void State::act_cx_gate(UINT target, UINT control) { impl_->act_cx_gate_opt(target, control); }
 
 void State::act_cz_gate(UINT target, UINT control) { impl_->act_cz_gate_opt(target, control); }
 

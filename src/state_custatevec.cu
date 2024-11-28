@@ -242,6 +242,22 @@ public:
         act_two_qubit_gate(matrix, target, control);
     }
 
+    void act_cx_gate(UINT target, UINT control)
+    {
+        static cuDoubleComplex matrix[4][4] = {
+            {make_cuDoubleComplex(1, 0), make_cuDoubleComplex(0, 0), make_cuDoubleComplex(0, 0),
+             make_cuDoubleComplex(0, 0)},
+            {make_cuDoubleComplex(0, 0), make_cuDoubleComplex(0, 0), make_cuDoubleComplex(0, 0),
+             make_cuDoubleComplex(1, 0)},
+            {make_cuDoubleComplex(0, 0), make_cuDoubleComplex(0, 0), make_cuDoubleComplex(1, 0),
+             make_cuDoubleComplex(0, 0)},
+            {make_cuDoubleComplex(0, 0), make_cuDoubleComplex(1, 0), make_cuDoubleComplex(0, 0),
+             make_cuDoubleComplex(0, 0)},
+        };
+
+        act_two_qubit_gate(matrix, target, control);
+    }
+
     void act_cz_gate(UINT target, UINT control)
     {
         static cuDoubleComplex matrix[4][4] = {
@@ -361,6 +377,8 @@ void State::act_iswaplike_gate(double theta, UINT target, UINT control)
 
     impl_->act_iswaplike_gate(theta, target, control);
 }
+
+void State::act_cx_gate(UINT target, UINT control) { impl_->act_cx_gate(target, control); }
 
 void State::act_cz_gate(UINT target, UINT control) { impl_->act_cz_gate(target, control); }
 

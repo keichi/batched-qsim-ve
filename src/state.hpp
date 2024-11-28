@@ -46,6 +46,8 @@ public:
 
     void act_iswaplike_gate(double theta, UINT target, UINT control);
 
+    void act_cx_gate(UINT target, UINT control);
+
     void act_cz_gate(UINT target, UINT control);
 
     void act_depolarizing_gate_1q(UINT target, double prob);
