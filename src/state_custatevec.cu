@@ -57,7 +57,7 @@ public:
         cuDoubleComplex c;
         HANDLE_CUDA_ERROR(cudaMemcpy(&c, state_ + (1ULL << n_) * sample + i,
                                      sizeof(cuDoubleComplex), cudaMemcpyDeviceToHost));
-        return std::complex(cuCreal(c), cuCimg(c));
+        return std::complex(cuCreal(c), cuCimag(c));
     }
 
     double re(UINT sample, UINT i)
