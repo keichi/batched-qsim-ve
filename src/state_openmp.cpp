@@ -91,7 +91,7 @@ public:
 #pragma omp simd
         for (int sample = 0; sample < batch_size_; sample++) {
             state_re_[sample] = 1;
-            state_re_[sample] = 1;
+            state_im_[sample] = 0;
         }
     }
 
