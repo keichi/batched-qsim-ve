@@ -1,3 +1,4 @@
+// vim: set ft=cpp:
 #pragma _NEC options "-O4 -finline-functions -report-all"
 #pragma _NEC options "-fdiag-inline=0 -fdiag-parallel=0 -fdiag-vector=0"
 
