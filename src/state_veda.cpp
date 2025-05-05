@@ -134,7 +134,7 @@ public:
         VEDA(vedaArgsSetVPtr(args, 1, state_im_ptr_));
         VEDA(vedaArgsSetU64(args, 2, batch_size_));
         VEDA(vedaArgsSetU64(args, 3, n_));
-        VEDA(vedaLaunchKernelEx(set_zero_state_, 0, args, 1, nullptr));
+        VEDA(vedaLaunchKernel(set_zero_state_, 0, args));
     }
 
     void act_single_qubit_gate(double matrix_re[2][2], double matrix_im[2][2], UINT target)
@@ -148,7 +148,7 @@ public:
         VEDA(vedaArgsSetU64(args, 4, target));
         VEDA(vedaArgsSetU64(args, 5, batch_size_));
         VEDA(vedaArgsSetU64(args, 6, n_));
-        VEDA(vedaLaunchKernelEx(act_single_qubit_gate_, 0, args, 1, nullptr));
+        VEDA(vedaLaunchKernel(act_single_qubit_gate_, 0, args));
     }
 
     void act_two_qubit_gate(double matrix_re[4][4], double matrix_im[4][4], UINT target,
@@ -164,7 +164,7 @@ public:
         VEDA(vedaArgsSetU64(args, 5, control));
         VEDA(vedaArgsSetU64(args, 6, batch_size_));
         VEDA(vedaArgsSetU64(args, 7, n_));
-        VEDA(vedaLaunchKernelEx(act_two_qubit_gate_, 0, args, 1, nullptr));
+        VEDA(vedaLaunchKernel(act_two_qubit_gate_, 0, args));
     }
 
     void act_x_gate_opt(UINT target)
@@ -176,7 +176,7 @@ public:
         VEDA(vedaArgsSetU64(args, 2, target));
         VEDA(vedaArgsSetU64(args, 3, batch_size_));
         VEDA(vedaArgsSetU64(args, 4, n_));
-        VEDA(vedaLaunchKernelEx(act_x_gate_opt_, 0, args, 1, nullptr));
+        VEDA(vedaLaunchKernel(act_x_gate_opt_, 0, args));
     }
 
     void act_y_gate_opt(UINT target)
@@ -188,7 +188,7 @@ public:
         VEDA(vedaArgsSetU64(args, 2, target));
         VEDA(vedaArgsSetU64(args, 3, batch_size_));
         VEDA(vedaArgsSetU64(args, 4, n_));
-        VEDA(vedaLaunchKernelEx(act_y_gate_opt_, 0, args, 1, nullptr));
+        VEDA(vedaLaunchKernel(act_y_gate_opt_, 0, args));
     }
 
     void act_z_gate_opt(UINT target)
@@ -200,7 +200,7 @@ public:
         VEDA(vedaArgsSetU64(args, 2, target));
         VEDA(vedaArgsSetU64(args, 3, batch_size_));
         VEDA(vedaArgsSetU64(args, 4, n_));
-        VEDA(vedaLaunchKernelEx(act_z_gate_opt_, 0, args, 1, nullptr));
+        VEDA(vedaLaunchKernel(act_z_gate_opt_, 0, args));
     }
 
     void act_h_gate(UINT target)
@@ -288,7 +288,7 @@ public:
         VEDA(vedaArgsSetU64(args, 3, control));
         VEDA(vedaArgsSetU64(args, 4, batch_size_));
         VEDA(vedaArgsSetU64(args, 5, n_));
-        VEDA(vedaLaunchKernelEx(act_cnot_gate_opt_, 0, args, 1, nullptr));
+        VEDA(vedaLaunchKernel(act_cnot_gate_opt_, 0, args));
     }
 
     void act_cz_gate(UINT target, UINT control)
@@ -319,7 +319,7 @@ public:
         VEDA(vedaArgsSetU64(args, 3, control));
         VEDA(vedaArgsSetU64(args, 4, batch_size_));
         VEDA(vedaArgsSetU64(args, 5, n_));
-        VEDA(vedaLaunchKernelEx(act_cx_gate_opt_, 0, args, 1, nullptr));
+        VEDA(vedaLaunchKernel(act_cx_gate_opt_, 0, args));
     }
 
     void act_cz_gate_opt(UINT target, UINT control)
@@ -332,7 +332,7 @@ public:
         VEDA(vedaArgsSetU64(args, 3, control));
         VEDA(vedaArgsSetU64(args, 4, batch_size_));
         VEDA(vedaArgsSetU64(args, 5, n_));
-        VEDA(vedaLaunchKernelEx(act_cz_gate_opt_, 0, args, 1, nullptr));
+        VEDA(vedaLaunchKernel(act_cz_gate_opt_, 0, args));
     }
 
     void act_depolarizing_gate_1q(UINT target, double prob)
@@ -375,7 +375,7 @@ public:
         VEDA(vedaArgsSetU64(args, 8, target));
         VEDA(vedaArgsSetU64(args, 9, batch_size_));
         VEDA(vedaArgsSetU64(args, 10, n_));
-        VEDA(vedaLaunchKernelEx(act_depolarizing_gate_1q_, 0, args, 1, nullptr));
+        VEDA(vedaLaunchKernel(act_depolarizing_gate_1q_, 0, args));
 
         VEDA(vedaMemFree(x_samples_ptr_));
         VEDA(vedaMemFree(y_samples_ptr_));
