@@ -390,7 +390,7 @@ void act_depolarizing_gate_1q(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im
     vedaMemPtr((void**)&state_re, state_re_ptr);
     vedaMemPtr((void**)&state_im, state_im_ptr);
 
-    double *x_samples, *y_samples, *z_samples;
+    int *x_samples, *y_samples, *z_samples;
     vedaMemPtr((void**)&x_samples, x_samples_ptr);
     vedaMemPtr((void**)&y_samples, y_samples_ptr);
     vedaMemPtr((void**)&z_samples, z_samples_ptr);
