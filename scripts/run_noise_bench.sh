@@ -14,6 +14,9 @@ echo -e "noise_rate\tqubits\tsamples\tbatch_size\truntime [s]"
 
 samples=100000
 
+export VE_TRACEBACK=VERBOSE
+export VE_LD_LIBRARY_PATH=$(realpath ../build):$VE_LD_LIBRARY_PATH
+
 for noise_rate in 0.001 0.002 0.005 0.01 0.02 0.05 0.1
 do
     for qubits in $(seq 8 14)

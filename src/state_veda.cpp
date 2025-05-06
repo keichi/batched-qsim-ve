@@ -51,7 +51,7 @@ public:
         VEDA(vedaInit(0));
         VEDA(vedaDevicePrimaryCtxRetain(&context_, 0));
         VEDA(vedaCtxPushCurrent(context_));
-        VEDA(vedaModuleLoad(&module_, "../build/libqsim_device.vso"));
+        VEDA(vedaModuleLoad(&module_, "libqsim_device.vso"));
 
         VEDA(vedaModuleGetFunction(&get_probability_, module_, "get_probability"));
         VEDA(vedaModuleGetFunction(&set_zero_state_, module_, "set_zero_state"));

@@ -14,6 +14,8 @@ echo -e "qubits\tsamples\tbatch_size\truntime [s]"
 
 samples=100000
 
+export VE_LD_LIBRARY_PATH=$(realpath ../build):$VE_LD_LIBRARY_PATH
+
 for qubits in $(seq 8 14)
     do
     for batch_size in 1 10 100 200 500 1000 2000 5000 10000 20000 50000 100000
