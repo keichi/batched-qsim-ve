@@ -22,29 +22,6 @@ void check(VEDAresult err, const char* file, const int line) {
 class State::Impl
 {
 public:
-    UINT batch_size_;
-    UINT n_;
-
-    std::random_device seed_gen_;
-    std::mt19937 mt_engine_;
-    std::uniform_real_distribution<double> dist_;
-
-    VEDAcontext context_;
-    VEDAmodule module_;
-    VEDAdeviceptr state_re_ptr_, state_im_ptr_;
-
-    VEDAfunction get_probability_;
-    VEDAfunction set_zero_state_;
-    VEDAfunction act_single_qubit_gate_;
-    VEDAfunction act_two_qubit_gate_;
-    VEDAfunction act_x_gate_opt_;
-    VEDAfunction act_y_gate_opt_;
-    VEDAfunction act_z_gate_opt_;
-    VEDAfunction act_cnot_gate_opt_;
-    VEDAfunction act_cx_gate_opt_;
-    VEDAfunction act_cz_gate_opt_;
-    VEDAfunction act_depolarizing_gate_1q_;
-
     Impl(UINT n, UINT batch_size)
         : n_(n), batch_size_(batch_size), mt_engine_(seed_gen_()), dist_(0.0, 1.0)
     {
@@ -409,6 +386,31 @@ public:
     void synchronize() {
         VEDA(vedaCtxSynchronize());
     }
+
+private:
+    UINT batch_size_;
+    UINT n_;
+
+    std::random_device seed_gen_;
+    std::mt19937 mt_engine_;
+    std::uniform_real_distribution<double> dist_;
+
+    VEDAdeviceptr state_re_ptr_, state_im_ptr_;
+
+    VEDAcontext context_;
+    VEDAmodule module_;
+
+    VEDAfunction get_probability_;
+    VEDAfunction set_zero_state_;
+    VEDAfunction act_single_qubit_gate_;
+    VEDAfunction act_two_qubit_gate_;
+    VEDAfunction act_x_gate_opt_;
+    VEDAfunction act_y_gate_opt_;
+    VEDAfunction act_z_gate_opt_;
+    VEDAfunction act_cnot_gate_opt_;
+    VEDAfunction act_cx_gate_opt_;
+    VEDAfunction act_cz_gate_opt_;
+    VEDAfunction act_depolarizing_gate_1q_;
 };
 
 State::State(UINT n, UINT batch_size) : impl_(std::make_shared<Impl>(n, batch_size)) {}

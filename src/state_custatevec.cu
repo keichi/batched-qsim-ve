@@ -30,15 +30,6 @@
 class State::Impl
 {
 public:
-    custatevecHandle_t handle_;
-    cuDoubleComplex *state_;
-    UINT batch_size_;
-    UINT n_;
-
-    std::random_device seed_gen_;
-    std::mt19937 mt_engine_;
-    std::uniform_real_distribution<double> dist_;
-
     Impl(UINT n, UINT batch_size)
         : n_(n), batch_size_(batch_size), mt_engine_(seed_gen_()), dist_(0.0, 1.0)
     {
@@ -346,6 +337,17 @@ public:
     }
 
     void synchronize() { HANDLE_CUDA_ERROR(cudaDeviceSynchronize()); }
+
+private:
+    custatevecHandle_t handle_;
+    cuDoubleComplex *state_;
+    UINT batch_size_;
+    UINT n_;
+
+    std::random_device seed_gen_;
+    std::mt19937 mt_engine_;
+    std::uniform_real_distribution<double> dist_;
+
 };
 
 State::State(UINT n, UINT batch_size) : impl_(std::make_shared<Impl>(n, batch_size)) {}

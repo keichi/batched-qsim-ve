@@ -15,18 +15,6 @@
 class State::Impl
 {
 public:
-    std::vector<double> state_re_;
-    std::vector<double> state_im_;
-    UINT batch_size_;
-    UINT n_;
-
-#ifdef __NEC__
-    asl_random_t rng_;
-#endif
-    std::random_device seed_gen_;
-    std::mt19937 mt_engine_;
-    std::uniform_real_distribution<double> dist_;
-
     Impl(UINT n, UINT batch_size)
         : state_re_((1ULL << n) * batch_size), state_im_((1ULL << n) * batch_size), n_(n),
           batch_size_(batch_size), mt_engine_(seed_gen_()), dist_(0.0, 1.0)
@@ -564,6 +552,20 @@ public:
         act_depolarizing_gate_1q(target, 1.0 - std::sqrt(1.0 - prob));
         act_depolarizing_gate_1q(control, 1.0 - std::sqrt(1.0 - prob));
     }
+
+private:
+    std::vector<double> state_re_;
+    std::vector<double> state_im_;
+    UINT batch_size_;
+    UINT n_;
+
+#ifdef __NEC__
+    asl_random_t rng_;
+#endif
+    std::random_device seed_gen_;
+    std::mt19937 mt_engine_;
+    std::uniform_real_distribution<double> dist_;
+
 };
 
 State::State(UINT n, UINT batch_size) : impl_(std::make_shared<Impl>(n, batch_size)) {}
