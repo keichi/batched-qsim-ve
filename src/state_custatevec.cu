@@ -363,7 +363,7 @@ double State::im(UINT sample, UINT i) const { return impl_->im(sample, i); }
 
 double State::get_probability(UINT i) const { return impl_->get_probability(i); }
 
-UINT State::dim() const const { return impl_->dim(); }
+UINT State::dim() const { return impl_->dim(); }
 
 UINT State::batch_size() const { return impl_->batch_size(); }
 

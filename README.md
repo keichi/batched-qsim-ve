@@ -1,18 +1,18 @@
 # veqsim
 
-```
-python3 -m install nanobind veda
-```
+## Requirements
+
+- GCC 8+
+- Python 3.8+
+- CMake 3.18+
+- Recent nanobind and VEDA (installed via pip)
 
 ## Building
 
 ### NEC Vector Engine
 
 ```
-cmake -DCMAKE_CXX_FLAGS="-std=c++17" \
-      -DCMAKE_TOOLCHAIN_FILE=/opt/nec/ve/share/cmake/toolchainVE.cmake \
-      -DCMAKE_EXE_LINKER_FLAGS="-fopenmp -Wl,'-z muldefs'" \
-      -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
       ..
 ```
 
