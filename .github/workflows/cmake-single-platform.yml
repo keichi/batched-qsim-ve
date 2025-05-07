@@ -17,6 +17,10 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Install dependencies
+      run: |
+        python3 -m pip install --user nanobind
+
     - name: Configure CMake
       run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
 
@@ -42,7 +46,7 @@ jobs:
         dnf install -y --setopt=install_weak_deps=0 nec-nc++-inst nec-nc++-5.3.0 nec-nc++-compat-shared-devel-5.3.0 glibc-ve3-devel libsysve-ve3-devel libgcc-ve3-static veoffload-veda veoffload-aveo
         dnf install -y gcc-c++ cmake git python39 python39-pip
         python3 -m pip install -U pip
-        python3 -m pip install --user veda
+        python3 -m pip install --user veda nanobind
 
     - name: Configure CMake
       run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
@@ -60,7 +64,9 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: Install dependencies
-      run: apt-get update && apt-get install -y git cmake python3 cuquantum-cuda-12
+      run: |
+        apt-get update && apt-get install -y git cmake python3 cuquantum-cuda-12
+        python3 -m pip install --user nanobind
 
     - name: Configure CMake
       run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
