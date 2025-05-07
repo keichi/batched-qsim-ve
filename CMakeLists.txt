@@ -22,7 +22,9 @@ FetchContent_MakeAvailable(doctest)
 include(CheckLanguage)
 check_language(CUDA)
 
-set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/.venv/lib/python3.7/site-packages/veda/cmake)
+find_package(Python 3.8 COMPONENTS Interpreter REQUIRED)
+list(APPEND CMAKE_MODULE_PATH $ENV{HOME}/.local/lib/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/site-packages/veda/cmake)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/.venv/lib/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/site-packages/veda/cmake)
 find_package(VEDA)
 
 if(CMAKE_CUDA_COMPILER)

@@ -27,6 +27,29 @@ jobs:
       working-directory: ${{github.workspace}}/build
       run: ctest -C ${{env.BUILD_TYPE}}
 
+  build-veda:
+    runs-on: ubuntu-latest
+
+    container:
+      image: rockylinux/rockylinux:8.10-ubi
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        dnf install -y https://sxauroratsubasa.sakura.ne.jp/repos/TSUBASA-soft-release-ve3-3.0-1.noarch.rpm
+        dnf install -y --setopt=install_weak_deps=0 nec-nc++-inst nec-nc++-5.3.0 nec-nc++-compat-shared-devel-5.3.0 glibc-ve3-devel libsysve-ve3-devel libgcc-ve3-static veoffload-veda veoffload-aveo
+        dnf install -y gcc-c++ cmake git python39 python39-pip
+        python3 -m pip install -U pip
+        python3 -m pip install --user veda
+
+    - name: Configure CMake
+      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+
   build-custatevec:
     runs-on: ubuntu-latest
 
