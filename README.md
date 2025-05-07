@@ -1,4 +1,8 @@
-# batched-qsim-ve
+# veqsim
+
+```
+python3 -m install nanobind veda
+```
 
 ## Building
 
@@ -45,7 +49,7 @@ cmake -DCMAKE_CXX_COMPILER=icpc \
 
 ## Citing
 
-Please cite the following paper if you use batched-qsim-ve:
+Please cite the following paper if you use veqsim:
 
 - Keichi Takahashi, Toshio Mori, Hiroyuki Takizawa, "Prototype of a Batched Quantum Circuit
   Simulator for the Vector Engine," 4th International Workshop on Quantum Computing Software held in
