@@ -112,13 +112,15 @@ public:
 
         VEDAargs args;
         VEDA(vedaArgsCreate(&args));
-        VEDA(vedaArgsSetVPtr(args, 0, state_re_ptr_));
-        VEDA(vedaArgsSetVPtr(args, 1, state_im_ptr_));
-        VEDA(vedaArgsSetStack(args, 2, &prob, VEDA_ARGS_INTENT_OUT, sizeof(double)));
-        VEDA(vedaArgsSetU64(args, 3, batch_size_));
-        VEDA(vedaArgsSetU64(args, 4, n_));
+        VEDA(vedaArgsSetStack(args, 0, &prob, VEDA_ARGS_INTENT_OUT, sizeof(double)));
+        VEDA(vedaArgsSetVPtr(args, 1, state_re_ptr_));
+        VEDA(vedaArgsSetVPtr(args, 2, state_im_ptr_));
+        VEDA(vedaArgsSetU64(args, 3, i));
+        VEDA(vedaArgsSetU64(args, 4, batch_size_));
+        VEDA(vedaArgsSetU64(args, 5, n_));
         VEDA(vedaLaunchKernel(get_probability_, 0, args));
         VEDA(vedaArgsDestroy(args));
+        VEDA(vedaCtxSynchronize());
 
         return prob;
     }
