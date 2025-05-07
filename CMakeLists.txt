@@ -8,24 +8,36 @@ include(FetchContent)
 FetchContent_Declare(
     cxxopts
     GIT_REPOSITORY https://github.com/jarro2783/cxxopts.git
-    GIT_TAG        v3.1.1
+    GIT_TAG        v3.2.1
 )
 FetchContent_MakeAvailable(cxxopts)
 
 FetchContent_Declare(
     doctest
     GIT_REPOSITORY https://github.com/doctest/doctest.git
-    GIT_TAG        v2.4.11
+    GIT_TAG        v2.4.12
 )
 FetchContent_MakeAvailable(doctest)
 
 include(CheckLanguage)
 check_language(CUDA)
 
-find_package(Python 3.8 COMPONENTS Interpreter REQUIRED)
+if (CMAKE_VERSION VERSION_LESS 3.18)
+  set(DEV_MODULE Development)
+else()
+  set(DEV_MODULE Development.Module)
+endif()
+
+find_package(Python 3.8 COMPONENTS Interpreter ${DEV_MODULE} REQUIRED)
 list(APPEND CMAKE_MODULE_PATH $ENV{HOME}/.local/lib/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/site-packages/veda/cmake)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/.venv/lib/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/site-packages/veda/cmake)
 find_package(VEDA)
+
+# Detect the installed nanobind package and import it into CMake
+execute_process(
+  COMMAND "${Python_EXECUTABLE}" -m nanobind --cmake_dir
+  OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE nanobind_ROOT)
+find_package(nanobind CONFIG REQUIRED)
 
 if(CMAKE_CUDA_COMPILER)
     enable_language(CUDA)
@@ -44,6 +56,9 @@ else()
     add_library(qsim src/state_openmp.cpp)
     target_link_libraries(qsim OpenMP::OpenMP_CXX)
 endif()
+
+nanobind_add_module(veqsim python/bindings.cpp)
+target_link_libraries(veqsim PRIVATE qsim)
 
 add_executable(qsim-gate-bench src/gate_benchmark.cpp)
 target_link_libraries(qsim-gate-bench qsim cxxopts)
