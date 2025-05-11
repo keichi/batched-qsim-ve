@@ -19,7 +19,7 @@ __attribute__((constructor)) void init()
     asl_random_create(&rng, ASL_RANDOMMETHOD_MT19937);
 }
 
-__attribute__((constructor)) void fini()
+__attribute__((destructor)) void fini()
 {
     asl_random_destroy(rng);
 
