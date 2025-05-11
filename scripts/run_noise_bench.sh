@@ -24,8 +24,8 @@ do
         for batch_size in 1 10 100 200 500 1000 2000 5000 10000 20000 50000 100000
         do
             echo -n -e "$noise_rate\t$qubits\t$samples\t$batch_size\t"
-            ../build/qsim-gate-bench --qubits $qubits --samples $samples --batch-size $batch_size \
-                                     --noise-rate $noise_rate --gate NOISE
+            ../build/veqsim-gate-bench --qubits $qubits --samples $samples --batch-size $batch_size \
+                                       --noise-rate $noise_rate --gate NOISE
         done
     done
 done
@@ -40,8 +40,8 @@ do
                 continue
             fi
             echo -n -e "$noise_rate\t$qubits\t$samples\t$batch_size\t"
-            ../build/qsim-gate-bench --qubits $qubits --samples $samples --batch-size $batch_size \
-                                     --noise-rate $noise_rate --gate NOISE --depth 1
+            ../build/veqsim-gate-bench --qubits $qubits --samples $samples --batch-size $batch_size \
+                                       --noise-rate $noise_rate --gate NOISE --depth 1
         done
     done
 done

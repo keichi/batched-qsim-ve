@@ -12,16 +12,16 @@ unset VE_PROGINF
 
 echo -e "noise_rate\tsamples\tbatch_size\truntime [s]"
 
-samples=100000
+samples=1024
 
 export VE_LD_LIBRARY_PATH=$(realpath ../build):$VE_LD_LIBRARY_PATH
 
 for noise_rate in 0.001 0.002 0.005 0.01 0.02 0.05 0.1
     do
-    for batch_size in 100
+    for batch_size in 256
     do
         echo -n -e "$noise_rate\t$samples\t$batch_size\t"
         ../build/veqsim-random-circuit --samples $samples --batch-size $batch_size \
-                                       --width 5 --height 5 --noise-rate $noise_rate --trials 1
+                                       --width 4 --height 6 --noise-rate $noise_rate --trials 1
     done
 done

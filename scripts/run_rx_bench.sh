@@ -21,7 +21,7 @@ for qubits in $(seq 8 14)
     for batch_size in 1 10 100 200 500 1000 2000 5000 10000 20000 50000 100000
     do
         echo -n -e "$qubits\t$samples\t$batch_size\t"
-        ../build/qsim-gate-bench --qubits $qubits --samples $samples --batch-size $batch_size
+        ../build/veqsim-gate-bench --qubits $qubits --samples $samples --batch-size $batch_size
     done
 done
 
@@ -33,7 +33,7 @@ for qubits in $(seq 15 25)
             continue
         fi
         echo -n -e "$qubits\t$samples\t$batch_size\t"
-        ../build/qsim-gate-bench --qubits $qubits --samples $samples --batch-size $batch_size \
-                                 --depth 1
+        ../build/veqsim-gate-bench --qubits $qubits --samples $samples --batch-size $batch_size \
+                                   --depth 1
     done
 done
