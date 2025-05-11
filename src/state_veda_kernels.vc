@@ -4,10 +4,27 @@
 
 #include <math.h>
 
+#include <asl.h>
 #include <veda_device.h>
 
 #define UINT unsigned int
 #define ITYPE unsigned long long
+
+static asl_random_t rng;
+
+__attribute__((constructor)) void init()
+{
+    asl_library_initialize();
+
+    asl_random_create(&rng, ASL_RANDOMMETHOD_MT19937);
+}
+
+__attribute__((constructor)) void fini()
+{
+    asl_random_destroy(rng);
+
+    asl_library_finalize();
+}
 
 void get_probability(double *prob, VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr, UINT i,
                      UINT batch_size, UINT n)
@@ -382,9 +399,9 @@ void act_cz_gate_opt(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr, UIN
 }
 
 void act_depolarizing_gate_1q(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr,
-                              VEDAdeviceptr x_samples_ptr, VEDAdeviceptr y_samples_ptr,
-                              VEDAdeviceptr z_samples_ptr, UINT nx_samples, UINT ny_samples,
-                              UINT nz_samples, UINT target, UINT batch_size, UINT n)
+                              VEDAdeviceptr dice_ptr, VEDAdeviceptr x_samples_ptr,
+                              VEDAdeviceptr y_samples_ptr, VEDAdeviceptr z_samples_ptr,
+                              double prob, UINT target, UINT batch_size, UINT n)
 {
     double *state_re, *state_im;
     vedaMemPtr((void**)&state_re, state_re_ptr);
@@ -394,6 +411,22 @@ void act_depolarizing_gate_1q(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im
     vedaMemPtr((void**)&x_samples, x_samples_ptr);
     vedaMemPtr((void**)&y_samples, y_samples_ptr);
     vedaMemPtr((void**)&z_samples, z_samples_ptr);
+
+    double *dice;
+    vedaMemPtr((void**)&dice, dice_ptr);
+
+    asl_random_generate_d(rng, batch_size, dice);
+
+    UINT nx_samples = 0, ny_samples = 0, nz_samples = 0;
+    for (int sample = 0; sample < batch_size; sample++) {
+        if (dice[sample] < prob / 3.0) {
+            x_samples[nx_samples++] = sample;
+        } else if (dice[sample] < prob * 2.0 / 3.0) {
+            y_samples[ny_samples++] = sample;
+        } else if (dice[sample] < prob) {
+            z_samples[nz_samples++] = sample;
+        }
+    }
 
     ITYPE mask = 1ULL << target;
     ITYPE lo_mask = mask - 1;

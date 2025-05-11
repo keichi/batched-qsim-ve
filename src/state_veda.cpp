@@ -44,12 +44,21 @@ public:
 
         VEDA(vedaMemAlloc(&state_re_ptr_, (1ULL << n) * batch_size * sizeof(double)));
         VEDA(vedaMemAlloc(&state_im_ptr_, (1ULL << n) * batch_size * sizeof(double)));
+        VEDA(vedaMemAlloc(&dice_ptr_, batch_size_ * sizeof(double)));
+        VEDA(vedaMemAlloc(&x_samples_ptr_, batch_size_ * sizeof(int)));
+        VEDA(vedaMemAlloc(&y_samples_ptr_, batch_size_ * sizeof(int)));
+        VEDA(vedaMemAlloc(&z_samples_ptr_, batch_size_ * sizeof(int)));
     }
 
     ~Impl()
     {
         VEDA(vedaMemFree(state_re_ptr_));
         VEDA(vedaMemFree(state_im_ptr_));
+        VEDA(vedaMemFree(dice_ptr_));
+        VEDA(vedaMemFree(x_samples_ptr_));
+        VEDA(vedaMemFree(y_samples_ptr_));
+        VEDA(vedaMemFree(z_samples_ptr_));
+
         VEDA(vedaExit());
     }
 
@@ -326,55 +335,20 @@ public:
 
     void act_depolarizing_gate_1q(UINT target, double prob)
     {
-        std::vector<int> x_samples, y_samples, z_samples;
-
-        for (int sample = 0; sample < batch_size_; sample++) {
-            double dice = dist_(mt_engine_);
-
-            if (dice < prob / 3.0) {
-                x_samples.push_back(sample);
-            } else if (dice < prob * 2.0 / 3.0) {
-                y_samples.push_back(sample);
-            } else if (dice < prob) {
-                z_samples.push_back(sample);
-            }
-        }
-
-        VEDAdeviceptr x_samples_ptr_, y_samples_ptr_, z_samples_ptr_;
-        VEDA(vedaMemAllocAsync(&x_samples_ptr_, x_samples.size() * sizeof(int), 0));
-        VEDA(vedaMemAllocAsync(&y_samples_ptr_, y_samples.size() * sizeof(int), 0));
-        VEDA(vedaMemAllocAsync(&z_samples_ptr_, z_samples.size() * sizeof(int), 0));
-        if (x_samples.size() > 0) {
-            VEDA(vedaMemcpyHtoDAsync(x_samples_ptr_, x_samples.data(), x_samples.size() * sizeof(int), 0));
-        }
-        if (y_samples.size() > 0) {
-            VEDA(vedaMemcpyHtoDAsync(y_samples_ptr_, y_samples.data(), y_samples.size() * sizeof(int), 0));
-        }
-        if (z_samples.size() > 0) {
-            VEDA(vedaMemcpyHtoDAsync(z_samples_ptr_, z_samples.data(), z_samples.size() * sizeof(int), 0));
-        }
-
         VEDAargs args;
         VEDA(vedaArgsCreate(&args));
         VEDA(vedaArgsSetVPtr(args, 0, state_re_ptr_));
         VEDA(vedaArgsSetVPtr(args, 1, state_im_ptr_));
-        VEDA(vedaArgsSetVPtr(args, 2, x_samples_ptr_));
-        VEDA(vedaArgsSetVPtr(args, 3, y_samples_ptr_));
-        VEDA(vedaArgsSetVPtr(args, 4, z_samples_ptr_));
-        VEDA(vedaArgsSetU64(args, 5, x_samples.size()));
-        VEDA(vedaArgsSetU64(args, 6, y_samples.size()));
-        VEDA(vedaArgsSetU64(args, 7, z_samples.size()));
-        VEDA(vedaArgsSetU64(args, 8, target));
-        VEDA(vedaArgsSetU64(args, 9, batch_size_));
-        VEDA(vedaArgsSetU64(args, 10, n_));
+        VEDA(vedaArgsSetVPtr(args, 2, dice_ptr_));
+        VEDA(vedaArgsSetVPtr(args, 3, x_samples_ptr_));
+        VEDA(vedaArgsSetVPtr(args, 4, y_samples_ptr_));
+        VEDA(vedaArgsSetVPtr(args, 5, z_samples_ptr_));
+        VEDA(vedaArgsSetF64(args, 6, prob));
+        VEDA(vedaArgsSetU64(args, 7, target));
+        VEDA(vedaArgsSetU64(args, 8, batch_size_));
+        VEDA(vedaArgsSetU64(args, 9, n_));
         VEDA(vedaLaunchKernel(act_depolarizing_gate_1q_, 0, args));
         VEDA(vedaArgsDestroy(args));
-
-        VEDA(vedaMemFreeAsync(x_samples_ptr_, 0));
-        VEDA(vedaMemFreeAsync(y_samples_ptr_, 0));
-        VEDA(vedaMemFreeAsync(z_samples_ptr_, 0));
-
-        VEDA(vedaCtxSynchronize());
     }
 
     void act_depolarizing_gate_2q(UINT target, UINT control, double prob)
@@ -396,6 +370,7 @@ private:
     std::uniform_real_distribution<double> dist_;
 
     VEDAdeviceptr state_re_ptr_, state_im_ptr_;
+    VEDAdeviceptr dice_ptr_, x_samples_ptr_, y_samples_ptr_, z_samples_ptr_;
 
     VEDAcontext context_;
     VEDAmodule module_;
