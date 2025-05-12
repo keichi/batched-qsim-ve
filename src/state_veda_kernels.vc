@@ -29,9 +29,9 @@ __attribute__((destructor)) void fini()
 void get_probability(double *prob, VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr, UINT i,
                      UINT batch_size, UINT n)
 {
-    double *state_re, *state_im;
-    vedaMemPtr((void**)&state_re, state_re_ptr);
-    vedaMemPtr((void**)&state_im, state_im_ptr);
+    double *state_re = NULL, *state_im = NULL;
+    vedaMemPtr((void **)&state_re, state_re_ptr);
+    vedaMemPtr((void **)&state_im, state_im_ptr);
 
     *prob = 0.0;
 
@@ -47,9 +47,9 @@ void get_probability(double *prob, VEDAdeviceptr state_re_ptr, VEDAdeviceptr sta
 
 void set_zero_state(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr, UINT batch_size, UINT n)
 {
-    double *state_re, *state_im;
-    vedaMemPtr((void**)&state_re, state_re_ptr);
-    vedaMemPtr((void**)&state_im, state_im_ptr);
+    double *state_re = NULL, *state_im = NULL;
+    vedaMemPtr((void **)&state_re, state_re_ptr);
+    vedaMemPtr((void **)&state_im, state_im_ptr);
 
 #pragma omp parallel for
     for (ITYPE i = 0; i < 1ULL << n; i++) {
@@ -73,9 +73,9 @@ void act_single_qubit_gate(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_pt
                            double matrix_re[2][2], double matrix_im[2][2], UINT target,
                            UINT batch_size, UINT n)
 {
-    double *state_re, *state_im;
-    vedaMemPtr((void**)&state_re, state_re_ptr);
-    vedaMemPtr((void**)&state_im, state_im_ptr);
+    double *state_re = NULL, *state_im = NULL;
+    vedaMemPtr((void **)&state_re, state_re_ptr);
+    vedaMemPtr((void **)&state_im, state_im_ptr);
 
     ITYPE mask = 1ULL << target;
     ITYPE lo_mask = mask - 1;
@@ -94,18 +94,18 @@ void act_single_qubit_gate(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_pt
             double tmp1_im = state_im[sample + i1 * batch_size];
 
             state_re[sample + i0 * batch_size] =
-                matrix_re[0][0] * tmp0_re - matrix_im[0][0] * tmp0_im +
-                matrix_re[0][1] * tmp1_re - matrix_im[0][1] * tmp1_im;
+                matrix_re[0][0] * tmp0_re - matrix_im[0][0] * tmp0_im + matrix_re[0][1] * tmp1_re -
+                matrix_im[0][1] * tmp1_im;
             state_im[sample + i0 * batch_size] =
-                matrix_re[0][0] * tmp0_im + matrix_im[0][0] * tmp0_re +
-                matrix_re[0][1] * tmp1_im + matrix_im[0][1] * tmp1_re;
+                matrix_re[0][0] * tmp0_im + matrix_im[0][0] * tmp0_re + matrix_re[0][1] * tmp1_im +
+                matrix_im[0][1] * tmp1_re;
 
             state_re[sample + i1 * batch_size] =
-                matrix_re[1][0] * tmp0_re - matrix_im[1][0] * tmp0_im +
-                matrix_re[1][1] * tmp1_re - matrix_im[1][1] * tmp1_im;
+                matrix_re[1][0] * tmp0_re - matrix_im[1][0] * tmp0_im + matrix_re[1][1] * tmp1_re -
+                matrix_im[1][1] * tmp1_im;
             state_im[sample + i1 * batch_size] =
-                matrix_re[1][0] * tmp0_im + matrix_im[1][0] * tmp0_re +
-                matrix_re[1][1] * tmp1_im + matrix_im[1][1] * tmp1_re;
+                matrix_re[1][0] * tmp0_im + matrix_im[1][0] * tmp0_re + matrix_re[1][1] * tmp1_im +
+                matrix_im[1][1] * tmp1_re;
         }
     }
 }
@@ -114,9 +114,9 @@ void act_two_qubit_gate(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr,
                         double matrix_re[4][4], double matrix_im[4][4], UINT target, UINT control,
                         UINT batch_size, UINT n)
 {
-    double *state_re, *state_im;
-    vedaMemPtr((void**)&state_re, state_re_ptr);
-    vedaMemPtr((void**)&state_im, state_im_ptr);
+    double *state_re = NULL, *state_im = NULL;
+    vedaMemPtr((void **)&state_re, state_re_ptr);
+    vedaMemPtr((void **)&state_im, state_im_ptr);
 
     ITYPE target_mask = 1ULL << target;
     ITYPE control_mask = 1ULL << control;
@@ -197,9 +197,9 @@ void act_two_qubit_gate(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr,
 void act_x_gate_opt(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr, UINT target,
                     UINT batch_size, UINT n)
 {
-    double *state_re, *state_im;
-    vedaMemPtr((void**)&state_re, state_re_ptr);
-    vedaMemPtr((void**)&state_im, state_im_ptr);
+    double *state_re = NULL, *state_im = NULL;
+    vedaMemPtr((void **)&state_re, state_re_ptr);
+    vedaMemPtr((void **)&state_im, state_im_ptr);
 
     ITYPE mask = 1ULL << target;
     ITYPE lo_mask = mask - 1;
@@ -229,9 +229,9 @@ void act_x_gate_opt(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr, UINT
 void act_y_gate_opt(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr, UINT target,
                     UINT batch_size, UINT n)
 {
-    double *state_re, *state_im;
-    vedaMemPtr((void**)&state_re, state_re_ptr);
-    vedaMemPtr((void**)&state_im, state_im_ptr);
+    double *state_re = NULL, *state_im = NULL;
+    vedaMemPtr((void **)&state_re, state_re_ptr);
+    vedaMemPtr((void **)&state_im, state_im_ptr);
 
     ITYPE mask = 1ULL << target;
     ITYPE lo_mask = mask - 1;
@@ -261,9 +261,9 @@ void act_y_gate_opt(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr, UINT
 void act_z_gate_opt(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr, UINT target,
                     UINT batch_size, UINT n)
 {
-    double *state_re, *state_im;
-    vedaMemPtr((void**)&state_re, state_re_ptr);
-    vedaMemPtr((void**)&state_im, state_im_ptr);
+    double *state_re = NULL, *state_im = NULL;
+    vedaMemPtr((void **)&state_re, state_re_ptr);
+    vedaMemPtr((void **)&state_im, state_im_ptr);
 
     ITYPE mask = 1ULL << target;
     ITYPE lo_mask = mask - 1;
@@ -288,9 +288,9 @@ void act_z_gate_opt(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr, UINT
 void act_cnot_gate_opt(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr, UINT target,
                        UINT control, UINT batch_size, UINT n)
 {
-    double *state_re, *state_im;
-    vedaMemPtr((void**)&state_re, state_re_ptr);
-    vedaMemPtr((void**)&state_im, state_im_ptr);
+    double *state_re = NULL, *state_im = NULL;
+    vedaMemPtr((void **)&state_re, state_re_ptr);
+    vedaMemPtr((void **)&state_im, state_im_ptr);
 
     ITYPE target_mask = 1ULL << target;
     ITYPE control_mask = 1ULL << control;
@@ -328,9 +328,9 @@ void act_cnot_gate_opt(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr, U
 void act_cx_gate_opt(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr, UINT target,
                      UINT control, UINT batch_size, UINT n)
 {
-    double *state_re, *state_im;
-    vedaMemPtr((void**)&state_re, state_re_ptr);
-    vedaMemPtr((void**)&state_im, state_im_ptr);
+    double *state_re = NULL, *state_im = NULL;
+    vedaMemPtr((void **)&state_re, state_re_ptr);
+    vedaMemPtr((void **)&state_im, state_im_ptr);
 
     ITYPE target_mask = 1ULL << target;
     ITYPE control_mask = 1ULL << control;
@@ -367,9 +367,9 @@ void act_cx_gate_opt(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr, UIN
 void act_cz_gate_opt(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr, UINT target,
                      UINT control, UINT batch_size, UINT n)
 {
-    double *state_re, *state_im;
-    vedaMemPtr((void**)&state_re, state_re_ptr);
-    vedaMemPtr((void**)&state_im, state_im_ptr);
+    double *state_re = NULL, *state_im = NULL;
+    vedaMemPtr((void **)&state_re, state_re_ptr);
+    vedaMemPtr((void **)&state_im, state_im_ptr);
 
     ITYPE target_mask = 1ULL << target;
     ITYPE control_mask = 1ULL << control;
@@ -400,20 +400,20 @@ void act_cz_gate_opt(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr, UIN
 
 void act_depolarizing_gate_1q(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr,
                               VEDAdeviceptr dice_ptr, VEDAdeviceptr x_samples_ptr,
-                              VEDAdeviceptr y_samples_ptr, VEDAdeviceptr z_samples_ptr,
-                              double prob, UINT target, UINT batch_size, UINT n)
+                              VEDAdeviceptr y_samples_ptr, VEDAdeviceptr z_samples_ptr, double prob,
+                              UINT target, UINT batch_size, UINT n)
 {
-    double *state_re, *state_im;
-    vedaMemPtr((void**)&state_re, state_re_ptr);
-    vedaMemPtr((void**)&state_im, state_im_ptr);
+    double *state_re = NULL, *state_im = NULL;
+    vedaMemPtr((void **)&state_re, state_re_ptr);
+    vedaMemPtr((void **)&state_im, state_im_ptr);
 
-    int *x_samples, *y_samples, *z_samples;
-    vedaMemPtr((void**)&x_samples, x_samples_ptr);
-    vedaMemPtr((void**)&y_samples, y_samples_ptr);
-    vedaMemPtr((void**)&z_samples, z_samples_ptr);
+    int *x_samples = NULL, *y_samples = NULL, *z_samples = NULL;
+    vedaMemPtr((void **)&x_samples, x_samples_ptr);
+    vedaMemPtr((void **)&y_samples, y_samples_ptr);
+    vedaMemPtr((void **)&z_samples, z_samples_ptr);
 
-    double *dice;
-    vedaMemPtr((void**)&dice, dice_ptr);
+    double *dice = NULL;
+    vedaMemPtr((void **)&dice, dice_ptr);
 
     asl_random_generate_d(rng, batch_size, dice);
 

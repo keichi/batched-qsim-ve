@@ -1,7 +1,5 @@
-#include <algorithm>
 #include <cmath>
 #include <random>
-#include <vector>
 
 #include <veda.h>
 
@@ -9,8 +7,9 @@
 
 #define VEDA(err) check(err, __FILE__, __LINE__)
 
-void check(VEDAresult err, const char* file, const int line) {
-    if(err != VEDA_SUCCESS) {
+void check(VEDAresult err, const char *file, const int line)
+{
+    if (err != VEDA_SUCCESS) {
         const char *name, *str;
         vedaGetErrorName(err, &name);
         vedaGetErrorString(err, &str);
@@ -28,19 +27,19 @@ public:
         VEDA(vedaInit(0));
         VEDA(vedaDevicePrimaryCtxRetain(&context_, 0));
         VEDA(vedaCtxPushCurrent(context_));
-        VEDA(vedaModuleLoad(&module_, "libveqsim-device.vso"));
+        VEDA(vedaModuleLoad(&mod_, "libveqsim-device.vso"));
 
-        VEDA(vedaModuleGetFunction(&get_probability_, module_, "get_probability"));
-        VEDA(vedaModuleGetFunction(&set_zero_state_, module_, "set_zero_state"));
-        VEDA(vedaModuleGetFunction(&act_single_qubit_gate_, module_, "act_single_qubit_gate"));
-        VEDA(vedaModuleGetFunction(&act_two_qubit_gate_, module_, "act_two_qubit_gate"));
-        VEDA(vedaModuleGetFunction(&act_x_gate_opt_, module_, "act_x_gate_opt"));
-        VEDA(vedaModuleGetFunction(&act_y_gate_opt_, module_, "act_y_gate_opt"));
-        VEDA(vedaModuleGetFunction(&act_z_gate_opt_, module_, "act_z_gate_opt"));
-        VEDA(vedaModuleGetFunction(&act_cnot_gate_opt_, module_, "act_cnot_gate_opt"));
-        VEDA(vedaModuleGetFunction(&act_cx_gate_opt_, module_, "act_cx_gate_opt"));
-        VEDA(vedaModuleGetFunction(&act_cz_gate_opt_, module_, "act_cz_gate_opt"));
-        VEDA(vedaModuleGetFunction(&act_depolarizing_gate_1q_, module_, "act_depolarizing_gate_1q"));
+        VEDA(vedaModuleGetFunction(&get_probability_, mod_, "get_probability"));
+        VEDA(vedaModuleGetFunction(&set_zero_state_, mod_, "set_zero_state"));
+        VEDA(vedaModuleGetFunction(&act_single_qubit_gate_, mod_, "act_single_qubit_gate"));
+        VEDA(vedaModuleGetFunction(&act_two_qubit_gate_, mod_, "act_two_qubit_gate"));
+        VEDA(vedaModuleGetFunction(&act_x_gate_opt_, mod_, "act_x_gate_opt"));
+        VEDA(vedaModuleGetFunction(&act_y_gate_opt_, mod_, "act_y_gate_opt"));
+        VEDA(vedaModuleGetFunction(&act_z_gate_opt_, mod_, "act_z_gate_opt"));
+        VEDA(vedaModuleGetFunction(&act_cnot_gate_opt_, mod_, "act_cnot_gate_opt"));
+        VEDA(vedaModuleGetFunction(&act_cx_gate_opt_, mod_, "act_cx_gate_opt"));
+        VEDA(vedaModuleGetFunction(&act_cz_gate_opt_, mod_, "act_cz_gate_opt"));
+        VEDA(vedaModuleGetFunction(&act_depolarizing_gate_1q_, mod_, "act_depolarizing_gate_1q"));
 
         VEDA(vedaMemAlloc(&state_re_ptr_, (1ULL << n) * batch_size * sizeof(double)));
         VEDA(vedaMemAlloc(&state_im_ptr_, (1ULL << n) * batch_size * sizeof(double)));
@@ -74,7 +73,8 @@ public:
         return std::complex(re, im);
     }
 
-    double re(UINT sample, UINT i) {
+    double re(UINT sample, UINT i)
+    {
         double re = 0.0;
 
         VEDA(vedaMemcpyDtoH(&re, state_re_ptr_ + (sample + i * batch_size_) * sizeof(double),
@@ -83,7 +83,8 @@ public:
         return re;
     }
 
-    double im(UINT sample, UINT i) {
+    double im(UINT sample, UINT i)
+    {
         double im = 0.0;
 
         VEDA(vedaMemcpyDtoH(&im, state_im_ptr_ + (sample + i * batch_size_) * sizeof(double),
@@ -357,9 +358,7 @@ public:
         act_depolarizing_gate_1q(control, 1.0 - std::sqrt(1.0 - prob));
     }
 
-    void synchronize() {
-        VEDA(vedaCtxSynchronize());
-    }
+    void synchronize() { VEDA(vedaCtxSynchronize()); }
 
 private:
     UINT batch_size_;
@@ -373,7 +372,7 @@ private:
     VEDAdeviceptr dice_ptr_, x_samples_ptr_, y_samples_ptr_, z_samples_ptr_;
 
     VEDAcontext context_;
-    VEDAmodule module_;
+    VEDAmodule mod_;
 
     VEDAfunction get_probability_;
     VEDAfunction set_zero_state_;
@@ -453,6 +452,4 @@ void State::act_depolarizing_gate_2q(UINT target, UINT control, double prob)
     impl_->act_depolarizing_gate_2q(target, control, prob);
 }
 
-void State::synchronize() {
-    impl_->synchronize();
-}
+void State::synchronize() { impl_->synchronize(); }
