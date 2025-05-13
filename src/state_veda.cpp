@@ -44,6 +44,7 @@ public:
 
         VEDA(vedaMemAlloc(&state_re_ptr_, (1ULL << n) * batch_size * sizeof(double)));
         VEDA(vedaMemAlloc(&state_im_ptr_, (1ULL << n) * batch_size * sizeof(double)));
+        VEDA(vedaMemAlloc(&theta_ptr_, batch_size_ * sizeof(double)));
         VEDA(vedaMemAlloc(&dice_ptr_, batch_size_ * sizeof(double)));
         VEDA(vedaMemAlloc(&x_samples_ptr_, batch_size_ * sizeof(int)));
         VEDA(vedaMemAlloc(&y_samples_ptr_, batch_size_ * sizeof(int)));
@@ -54,6 +55,7 @@ public:
     {
         VEDA(vedaMemFree(state_re_ptr_));
         VEDA(vedaMemFree(state_im_ptr_));
+        VEDA(vedaMemFree(theta_ptr_));
         VEDA(vedaMemFree(dice_ptr_));
         VEDA(vedaMemFree(x_samples_ptr_));
         VEDA(vedaMemFree(y_samples_ptr_));
@@ -386,6 +388,7 @@ private:
     std::uniform_real_distribution<double> dist_;
 
     VEDAdeviceptr state_re_ptr_, state_im_ptr_;
+    VEDAdeviceptr theta_ptr_;
     VEDAdeviceptr dice_ptr_, x_samples_ptr_, y_samples_ptr_, z_samples_ptr_;
 
     VEDAcontext context_;
