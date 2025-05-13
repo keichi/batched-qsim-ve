@@ -33,6 +33,7 @@ public:
         VEDA(vedaModuleGetFunction(&set_zero_state_, mod_, "set_zero_state"));
         VEDA(vedaModuleGetFunction(&act_single_qubit_gate_, mod_, "act_single_qubit_gate"));
         VEDA(vedaModuleGetFunction(&act_two_qubit_gate_, mod_, "act_two_qubit_gate"));
+        VEDA(vedaModuleGetFunction(&act_x_gate_opt_, mod_, "act_rx_gate_"));
         VEDA(vedaModuleGetFunction(&act_x_gate_opt_, mod_, "act_x_gate_opt"));
         VEDA(vedaModuleGetFunction(&act_y_gate_opt_, mod_, "act_y_gate_opt"));
         VEDA(vedaModuleGetFunction(&act_z_gate_opt_, mod_, "act_z_gate_opt"));
@@ -216,6 +217,22 @@ public:
         act_single_qubit_gate(matrix_re, matrix_im, target);
     }
 
+    void act_rx_gate(const std::vector<double> &theta, UINT target)
+    {
+        VEDA(vedaMemcpyHtoDAsync(theta_ptr_, theta.data(), batch_size_ * sizeof(double), 0));
+
+        VEDAargs args;
+        VEDA(vedaArgsCreate(&args));
+        VEDA(vedaArgsSetVPtr(args, 0, state_re_ptr_));
+        VEDA(vedaArgsSetVPtr(args, 1, state_im_ptr_));
+        VEDA(vedaArgsSetVPtr(args, 2, theta_ptr_));
+        VEDA(vedaArgsSetU64(args, 3, target));
+        VEDA(vedaArgsSetU64(args, 4, batch_size_));
+        VEDA(vedaArgsSetU64(args, 5, n_));
+        VEDA(vedaLaunchKernel(act_rx_gate_, 0, args));
+        VEDA(vedaArgsDestroy(args));
+    }
+
     void act_ry_gate(double theta, UINT target)
     {
         double matrix_re[2][2] = {{std::cos(theta / 2), 0}, {0, std::cos(theta / 2)}};
@@ -378,6 +395,7 @@ private:
     VEDAfunction set_zero_state_;
     VEDAfunction act_single_qubit_gate_;
     VEDAfunction act_two_qubit_gate_;
+    VEDAfunction act_rx_gate_;
     VEDAfunction act_x_gate_opt_;
     VEDAfunction act_y_gate_opt_;
     VEDAfunction act_z_gate_opt_;
@@ -417,6 +435,8 @@ void State::act_z_gate(UINT target) { impl_->act_z_gate_opt(target); }
 void State::act_h_gate(UINT target) { impl_->act_h_gate(target); }
 
 void State::act_rx_gate(double theta, UINT target) { impl_->act_rx_gate(theta, target); }
+
+void State::act_rx_gate(const std::vector<double> &theta, UINT target) { impl_->act_rx_gate(theta, target); }
 
 void State::act_ry_gate(double theta, UINT target) { impl_->act_ry_gate(theta, target); }
 

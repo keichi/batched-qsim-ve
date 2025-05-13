@@ -2,6 +2,7 @@
 
 #include <complex>
 #include <memory>
+#include <vector>
 
 using UINT = unsigned int;
 using ITYPE = unsigned long long;
@@ -36,6 +37,8 @@ public:
     void act_h_gate(UINT target);
 
     void act_rx_gate(double theta, UINT target);
+
+    void act_rx_gate(const std::vector<double> &theta, UINT target);
 
     void act_ry_gate(double theta, UINT target);
 

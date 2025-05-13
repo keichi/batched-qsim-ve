@@ -57,8 +57,6 @@ void set_zero_state(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr, UINT
         for (int sample = 0; sample < batch_size; sample++) {
             state_re[sample + i * batch_size] = 0;
             state_im[sample + i * batch_size] = 0;
-            state_re[sample + i * batch_size] = 0;
-            state_im[sample + i * batch_size] = 0;
         }
     }
 
@@ -190,6 +188,42 @@ void act_two_qubit_gate(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr,
                 matrix_re[3][1] * tmp01_im + matrix_im[3][1] * tmp01_re +
                 matrix_re[3][2] * tmp10_im + matrix_im[3][2] * tmp10_re +
                 matrix_re[3][3] * tmp11_im + matrix_im[3][3] * tmp11_re;
+        }
+    }
+}
+
+void act_rx_gate(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr, VEDAdeviceptr theta_ptr,
+                 UINT target, UINT batch_size, UINT n)
+{
+    double *state_re = NULL, *state_im = NULL, *theta = NULL;
+    vedaMemPtr((void **)&state_re, state_re_ptr);
+    vedaMemPtr((void **)&state_im, state_im_ptr);
+    vedaMemPtr((void **)&theta, theta_ptr);
+
+    ITYPE mask = 1ULL << target;
+    ITYPE lo_mask = mask - 1;
+    ITYPE hi_mask = ~lo_mask;
+
+#pragma omp parallel for
+    for (ITYPE i = 0; i < 1ULL << (n - 1); i++) {
+        ITYPE i0 = ((i & hi_mask) << 1) | (i & lo_mask);
+        ITYPE i1 = i0 | mask;
+
+#pragma omp simd
+        for (int sample = 0; sample < batch_size; sample++) {
+            double cos_half = cos(theta[sample] / 2);
+            double sin_half = sin(theta[sample] / 2);
+
+            double tmp0_re = state_re[sample + i0 * batch_size];
+            double tmp0_im = state_im[sample + i0 * batch_size];
+            double tmp1_re = state_re[sample + i1 * batch_size];
+            double tmp1_im = state_im[sample + i1 * batch_size];
+
+            state_re[sample + i0 * batch_size] = cos_half * tmp0_re + sin_half * tmp1_im;
+            state_im[sample + i0 * batch_size] = cos_half * tmp0_im - sin_half  * tmp1_re;
+
+            state_re[sample + i1 * batch_size] = sin_half * tmp0_im + cos_half * tmp1_re;
+            state_im[sample + i1 * batch_size] = -sin_half * tmp0_re + cos_half * tmp1_im;
         }
     }
 }

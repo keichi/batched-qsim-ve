@@ -71,8 +71,6 @@ public:
             for (int sample = 0; sample < batch_size_; sample++) {
                 state_re_[sample + i * batch_size_] = 0;
                 state_im_[sample + i * batch_size_] = 0;
-                state_re_[sample + i * batch_size_] = 0;
-                state_im_[sample + i * batch_size_] = 0;
             }
         }
 
@@ -288,6 +286,36 @@ public:
         double matrix_im[2][2] = {{0, -std::sin(theta / 2)}, {-std::sin(theta / 2), 0}};
 
         act_single_qubit_gate(matrix_re, matrix_im, target);
+    }
+
+    void act_rx_gate(const std::vector<double> &theta, UINT target)
+    {
+        ITYPE mask = 1ULL << target;
+        ITYPE lo_mask = mask - 1;
+        ITYPE hi_mask = ~lo_mask;
+
+#pragma omp parallel for
+        for (ITYPE i = 0; i < 1ULL << (n_ - 1); i++) {
+            ITYPE i0 = ((i & hi_mask) << 1) | (i & lo_mask);
+            ITYPE i1 = i0 | mask;
+
+#pragma omp simd
+            for (int sample = 0; sample < batch_size_; sample++) {
+                double cos_half = cos(theta[sample] / 2);
+                double sin_half = sin(theta[sample] / 2);
+
+                double tmp0_re = state_re_[sample + i0 * batch_size_];
+                double tmp0_im = state_im_[sample + i0 * batch_size_];
+                double tmp1_re = state_re_[sample + i1 * batch_size_];
+                double tmp1_im = state_im_[sample + i1 * batch_size_];
+
+                state_re_[sample + i0 * batch_size_] = cos_half * tmp0_re + sin_half * tmp1_im;
+                state_im_[sample + i0 * batch_size_] = cos_half * tmp0_im - sin_half  * tmp1_re;
+
+                state_re_[sample + i1 * batch_size_] = sin_half * tmp0_im + cos_half * tmp1_re;
+                state_im_[sample + i1 * batch_size_] = -sin_half * tmp0_re + cos_half * tmp1_im;
+            }
+        }
     }
 
     void act_ry_gate(double theta, UINT target)
@@ -598,6 +626,8 @@ void State::act_z_gate(UINT target) { impl_->act_z_gate_opt(target); }
 void State::act_h_gate(UINT target) { impl_->act_h_gate(target); }
 
 void State::act_rx_gate(double theta, UINT target) { impl_->act_rx_gate(theta, target); }
+
+void State::act_rx_gate(const std::vector<double> &theta, UINT target) { impl_->act_rx_gate(theta, target); }
 
 void State::act_ry_gate(double theta, UINT target) { impl_->act_ry_gate(theta, target); }
 
