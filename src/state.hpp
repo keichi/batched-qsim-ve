@@ -4,6 +4,8 @@
 #include <memory>
 #include <vector>
 
+#include "observable.hpp"
+
 using UINT = unsigned int;
 using ITYPE = unsigned long long;
 
@@ -65,6 +67,8 @@ public:
     void act_depolarizing_gate_1q(UINT target, double prob);
 
     void act_depolarizing_gate_2q(UINT target, UINT control, double prob);
+
+    std::vector<std::complex<double>> observe(const Observable &obs) const;
 
     void synchronize();
 

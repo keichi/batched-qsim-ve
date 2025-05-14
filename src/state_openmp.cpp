@@ -10,7 +10,21 @@
 #include <asl.h>
 #endif
 
+#include "observable.hpp"
 #include "state.hpp"
+
+std::uint64_t insert_zero_to_basis_index(std::uint64_t basis_index, std::uint64_t insert_index)
+{
+    std::uint64_t mask = (1ULL << insert_index) - 1;
+    std::uint64_t temp_basis = (basis_index >> insert_index) << (insert_index + 1);
+    return temp_basis | (basis_index & mask);
+}
+
+std::array<std::complex<double>, 4> PHASE_90ROT()
+{
+    return {std::complex<double>(1, 0), std::complex<double>(0, 1), std::complex<double>(-1, 0),
+            std::complex<double>(0, -1)};
+}
 
 class State::Impl
 {
@@ -47,17 +61,17 @@ public:
         return sv;
     }
 
-    std::complex<double> amplitude(UINT sample, UINT i)
+    std::complex<double> amplitude(UINT sample, UINT i) const
     {
         return std::complex(state_re_[sample + i * batch_size_],
                             state_im_[sample + i * batch_size_]);
     }
 
-    double re(UINT sample, UINT i) { return state_re_[sample + i * batch_size_]; }
+    double re(UINT sample, UINT i) const { return state_re_[sample + i * batch_size_]; }
 
-    double im(UINT sample, UINT i) { return state_im_[sample + i * batch_size_]; }
+    double im(UINT sample, UINT i) const { return state_im_[sample + i * batch_size_]; }
 
-    double get_probability(UINT i)
+    double get_probability(UINT i) const
     {
         double prob = 0.0;
 
@@ -322,7 +336,7 @@ public:
                 double tmp1_im = state_im_[sample + i1 * batch_size_];
 
                 state_re_[sample + i0 * batch_size_] = cos_half * tmp0_re + sin_half * tmp1_im;
-                state_im_[sample + i0 * batch_size_] = cos_half * tmp0_im - sin_half  * tmp1_re;
+                state_im_[sample + i0 * batch_size_] = cos_half * tmp0_im - sin_half * tmp1_re;
 
                 state_re_[sample + i1 * batch_size_] = sin_half * tmp0_im + cos_half * tmp1_re;
                 state_im_[sample + i1 * batch_size_] = -sin_half * tmp0_re + cos_half * tmp1_im;
@@ -593,6 +607,54 @@ public:
         act_depolarizing_gate_1q(control, 1.0 - std::sqrt(1.0 - prob));
     }
 
+    std::vector<std::complex<double>> observe(const Observable &obs) const
+    {
+        std::vector<std::complex<double>> res(batch_size_);
+
+        for (std::uint64_t term_id = 0; term_id < obs.terms.size(); term_id++) {
+            std::uint64_t bit_flip_mask = obs.terms[term_id].bit_flip_mask;
+            std::uint64_t phase_flip_mask = obs.terms[term_id].phase_flip_mask;
+            std::complex<double> coef = obs.terms[term_id].coef;
+
+            if (bit_flip_mask == 0) {
+                for (std::uint64_t idx = 0; idx < 1ULL << (n_ - 1); idx++) {
+                    std::uint64_t idx1 = idx << 1;
+                    std::uint64_t idx2 = idx1 | 1;
+
+                    for (std::uint64_t sample = 0; sample < batch_size_; sample++) {
+                        double tmp1 =
+                            (std::conj(amplitude(sample, idx1)) * amplitude(sample, idx1)).real();
+                        if (__builtin_popcount(idx1 & phase_flip_mask) & 1) tmp1 = -tmp1;
+                        double tmp2 =
+                            (std::conj(amplitude(sample, idx2)) * amplitude(sample, idx2)).real();
+                        if (__builtin_popcount(idx2 & phase_flip_mask) & 1) tmp2 = -tmp2;
+                        res[sample] += coef * (tmp1 + tmp2);
+                    }
+                }
+            } else {
+                for (std::uint64_t idx = 0; idx < 1ULL << (n_ - 1); idx++) {
+                    std::uint64_t pivot =
+                        sizeof(std::uint64_t) * 8 - __builtin_clz(bit_flip_mask) - 1;
+                    std::uint64_t global_phase_90rot_count =
+                        __builtin_popcount(bit_flip_mask & phase_flip_mask);
+                    std::complex<double> global_phase = PHASE_90ROT()[global_phase_90rot_count % 4];
+                    std::uint64_t basis_0 = insert_zero_to_basis_index(idx, pivot);
+                    std::uint64_t basis_1 = basis_0 ^ bit_flip_mask;
+
+                    for (std::uint64_t sample = 0; sample < batch_size_; sample++) {
+                        double tmp =
+                            std::real(amplitude(sample, basis_0) *
+                                      std::conj(amplitude(sample, basis_1)) * global_phase * 2.);
+                        if (__builtin_popcount(basis_0 & phase_flip_mask) & 1) tmp = -tmp;
+                        res[sample] += coef * tmp;
+                    }
+                }
+            }
+        }
+
+        return res;
+    }
+
 private:
     std::vector<double> state_re_;
     std::vector<double> state_im_;
@@ -605,7 +667,6 @@ private:
     std::random_device seed_gen_;
     std::mt19937 mt_engine_;
     std::uniform_real_distribution<double> dist_;
-
 };
 
 State::State(UINT n, UINT batch_size) : impl_(std::make_shared<Impl>(n, batch_size)) {}
@@ -644,7 +705,10 @@ void State::act_h_gate(UINT target) { impl_->act_h_gate(target); }
 
 void State::act_rx_gate(double theta, UINT target) { impl_->act_rx_gate(theta, target); }
 
-void State::act_rx_gate(const std::vector<double> &theta, UINT target) { impl_->act_rx_gate(theta, target); }
+void State::act_rx_gate(const std::vector<double> &theta, UINT target)
+{
+    impl_->act_rx_gate(theta, target);
+}
 
 void State::act_ry_gate(double theta, UINT target) { impl_->act_ry_gate(theta, target); }
 
@@ -678,6 +742,11 @@ void State::act_depolarizing_gate_1q(UINT target, double prob)
 void State::act_depolarizing_gate_2q(UINT target, UINT control, double prob)
 {
     impl_->act_depolarizing_gate_2q(target, control, prob);
+}
+
+std::vector<std::complex<double>> State::observe(const Observable &obs) const
+{
+    return impl_->observe(obs);
 }
 
 void State::synchronize() {}

@@ -8,6 +8,19 @@ namespace nb = nanobind;
 
 NB_MODULE(veqsim, m)
 {
+    nb::enum_<PauliID>(m, "PauliID")
+        .value("I", PauliID::I)
+        .value("X", PauliID::X)
+        .value("Y", PauliID::Y)
+        .value("Z", PauliID::Z);
+
+    nb::class_<PauliOperator>(m, "PauliOperator")
+        .def(nb::init<std::complex<double>, std::vector<uint64_t>, std::vector<uint64_t>>());
+
+    nb::class_<Observable>(m, "Observable")
+        .def(nb::init())
+        .def("add_operator", &Observable::add_operator);
+
     nb::class_<State>(m, "State", "A batched state vector")
         .def(nb::init<UINT, UINT>(), "Create state vector")
         .def_prop_ro("dim", &State::dim, "Dimension")
@@ -41,5 +54,6 @@ NB_MODULE(veqsim, m)
              "Apply an one-qubit depolarizing noise gate")
         .def("act_depolarizing_gate_2q", &State::act_depolarizing_gate_2q,
              "Apply a two-qubit depolarizing noise gate")
+        .def("observe", &State::observe, "Get expectation of a given observable")
         .def("synchronize", &State::synchronize, "Wiat for completion of computation");
 }
