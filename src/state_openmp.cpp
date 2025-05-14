@@ -2,6 +2,7 @@
 #pragma _NEC options "-fdiag-inline=0 -fdiag-parallel=0 -fdiag-vector=0"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <random>
 #include <vector>
