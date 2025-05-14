@@ -29,11 +29,12 @@ public:
         VEDA(vedaCtxPushCurrent(context_));
         VEDA(vedaModuleLoad(&mod_, "libveqsim-device.vso"));
 
+        VEDA(vedaModuleGetFunction(&get_vector_, mod_, "get_vector"));
         VEDA(vedaModuleGetFunction(&get_probability_, mod_, "get_probability"));
         VEDA(vedaModuleGetFunction(&set_zero_state_, mod_, "set_zero_state"));
         VEDA(vedaModuleGetFunction(&act_single_qubit_gate_, mod_, "act_single_qubit_gate"));
         VEDA(vedaModuleGetFunction(&act_two_qubit_gate_, mod_, "act_two_qubit_gate"));
-        VEDA(vedaModuleGetFunction(&act_x_gate_opt_, mod_, "act_rx_gate_"));
+        VEDA(vedaModuleGetFunction(&act_x_gate_opt_, mod_, "act_rx_gate"));
         VEDA(vedaModuleGetFunction(&act_x_gate_opt_, mod_, "act_x_gate_opt"));
         VEDA(vedaModuleGetFunction(&act_y_gate_opt_, mod_, "act_y_gate_opt"));
         VEDA(vedaModuleGetFunction(&act_z_gate_opt_, mod_, "act_z_gate_opt"));
@@ -44,7 +45,6 @@ public:
 
         VEDA(vedaMemAlloc(&state_re_ptr_, (1ULL << n) * batch_size * sizeof(double)));
         VEDA(vedaMemAlloc(&state_im_ptr_, (1ULL << n) * batch_size * sizeof(double)));
-        VEDA(vedaMemAlloc(&theta_ptr_, batch_size_ * sizeof(double)));
         VEDA(vedaMemAlloc(&dice_ptr_, batch_size_ * sizeof(double)));
         VEDA(vedaMemAlloc(&x_samples_ptr_, batch_size_ * sizeof(int)));
         VEDA(vedaMemAlloc(&y_samples_ptr_, batch_size_ * sizeof(int)));
@@ -55,13 +55,37 @@ public:
     {
         VEDA(vedaMemFree(state_re_ptr_));
         VEDA(vedaMemFree(state_im_ptr_));
-        VEDA(vedaMemFree(theta_ptr_));
         VEDA(vedaMemFree(dice_ptr_));
         VEDA(vedaMemFree(x_samples_ptr_));
         VEDA(vedaMemFree(y_samples_ptr_));
         VEDA(vedaMemFree(z_samples_ptr_));
 
         VEDA(vedaExit());
+    }
+
+    std::vector<std::complex<double>> get_vector(UINT sample) const
+    {
+        VEDAdeviceptr sv_ptr;
+        std::vector<std::complex<double>> sv(1ULL << n_);
+
+        VEDA(vedaMemAllocAsync(&sv_ptr, (1ULL << n_) * sizeof(std::complex<double>), 0));
+
+        VEDAargs args;
+        VEDA(vedaArgsCreate(&args));
+        VEDA(vedaArgsSetVPtr(args, 0, state_re_ptr_));
+        VEDA(vedaArgsSetVPtr(args, 1, state_im_ptr_));
+        VEDA(vedaArgsSetVPtr(args, 2, sv_ptr));
+        VEDA(vedaArgsSetU64(args, 3, sample));
+        VEDA(vedaArgsSetU64(args, 4, batch_size_));
+        VEDA(vedaArgsSetU64(args, 5, n_));
+        VEDA(vedaLaunchKernel(get_vector_, 0, args));
+        VEDA(vedaArgsDestroy(args));
+
+        VEDA(vedaMemcpyDtoHAsync(sv.data(), sv_ptr, (1ULL << n_) * sizeof(std::complex<double>), 0));
+        VEDA(vedaMemFreeAsync(sv_ptr, 0));
+        VEDA(vedaStreamSynchronize(0));
+
+        return sv;
     }
 
     std::complex<double> amplitude(UINT sample, UINT i)
@@ -221,18 +245,22 @@ public:
 
     void act_rx_gate(const std::vector<double> &theta, UINT target)
     {
-        VEDA(vedaMemcpyHtoDAsync(theta_ptr_, theta.data(), batch_size_ * sizeof(double), 0));
+        VEDAdeviceptr theta_ptr;
+        VEDA(vedaMemAllocAsync(&theta_ptr, batch_size_ * sizeof(double), 0));
+        VEDA(vedaMemcpyHtoDAsync(theta_ptr, theta.data(), batch_size_ * sizeof(double), 0));
 
         VEDAargs args;
         VEDA(vedaArgsCreate(&args));
         VEDA(vedaArgsSetVPtr(args, 0, state_re_ptr_));
         VEDA(vedaArgsSetVPtr(args, 1, state_im_ptr_));
-        VEDA(vedaArgsSetVPtr(args, 2, theta_ptr_));
+        VEDA(vedaArgsSetVPtr(args, 2, theta_ptr));
         VEDA(vedaArgsSetU64(args, 3, target));
         VEDA(vedaArgsSetU64(args, 4, batch_size_));
         VEDA(vedaArgsSetU64(args, 5, n_));
         VEDA(vedaLaunchKernel(act_rx_gate_, 0, args));
         VEDA(vedaArgsDestroy(args));
+
+        VEDA(vedaMemFreeAsync(theta_ptr, 0));
     }
 
     void act_ry_gate(double theta, UINT target)
@@ -388,12 +416,12 @@ private:
     std::uniform_real_distribution<double> dist_;
 
     VEDAdeviceptr state_re_ptr_, state_im_ptr_;
-    VEDAdeviceptr theta_ptr_;
     VEDAdeviceptr dice_ptr_, x_samples_ptr_, y_samples_ptr_, z_samples_ptr_;
 
     VEDAcontext context_;
     VEDAmodule mod_;
 
+    VEDAfunction get_vector_;
     VEDAfunction get_probability_;
     VEDAfunction set_zero_state_;
     VEDAfunction act_single_qubit_gate_;
@@ -411,6 +439,11 @@ private:
 State::State(UINT n, UINT batch_size) : impl_(std::make_shared<Impl>(n, batch_size)) {}
 
 State::~State() {}
+
+std::vector<std::complex<double>> State::get_vector(UINT sample) const
+{
+    return impl_->get_vector(sample);
+}
 
 std::complex<double> State::amplitude(UINT sample, UINT i) const
 {

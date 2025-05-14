@@ -26,6 +26,20 @@ __attribute__((destructor)) void fini()
     asl_library_finalize();
 }
 
+void get_vector(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr, VEDAdeviceptr sv_ptr,
+                UINT sample, UINT batch_size, UINT n)
+{
+    double *state_re = NULL, *state_im = NULL, *sv = NULL;
+    vedaMemPtr((void **)&state_re, state_re_ptr);
+    vedaMemPtr((void **)&state_im, state_im_ptr);
+    vedaMemPtr((void **)&sv, sv_ptr);
+
+    for (ITYPE i = 0; i < 1ULL << n; i++) {
+        sv[(i << 1)]     = state_re[sample + i * batch_size];
+        sv[(i << 1) + 1] = state_im[sample + i * batch_size];
+    }
+}
+
 void get_probability(double *prob, VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr, UINT i,
                      UINT batch_size, UINT n)
 {

@@ -35,6 +35,18 @@ public:
 #endif
     }
 
+    std::vector<std::complex<double>> get_vector(UINT sample) const
+    {
+        std::vector<std::complex<double>> sv;
+
+        for (ITYPE i = 0; i < 1ULL << n_; i++) {
+            sv.emplace_back(state_re_[sample + i * batch_size_],
+                            state_im_[sample + i * batch_size_]);
+        }
+
+        return sv;
+    }
+
     std::complex<double> amplitude(UINT sample, UINT i)
     {
         return std::complex(state_re_[sample + i * batch_size_],
@@ -599,6 +611,11 @@ private:
 State::State(UINT n, UINT batch_size) : impl_(std::make_shared<Impl>(n, batch_size)) {}
 
 State::~State() {}
+
+std::vector<std::complex<double>> State::get_vector(UINT sample) const
+{
+    return impl_->get_vector(sample);
+}
 
 std::complex<double> State::amplitude(UINT sample, UINT i) const
 {

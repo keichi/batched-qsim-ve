@@ -14,6 +14,8 @@ public:
 
     ~State();
 
+    std::vector<std::complex<double>> get_vector(UINT sample) const;
+
     std::complex<double> amplitude(UINT sample, UINT i) const;
 
     double re(UINT sample, UINT i) const;

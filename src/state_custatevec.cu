@@ -44,6 +44,17 @@ public:
         HANDLE_ERROR(custatevecDestroy(handle_));
     }
 
+    std::vector<std::complex<double>> get_vector(UINT sample) const
+    {
+        std::vector<std::complex<double>> sv(1ULL << n_);
+
+        HANDLE_CUDA_ERROR(cudaMemcpy(sv.data(), state_ + (1ULL << n_) * sample,
+                                     (1ULL << n_) * sizeof(cuDoubleComplex),
+                                     cudaMemcpyDeviceToHost));
+
+        return sv;
+    }
+
     std::complex<double> amplitude(UINT sample, UINT i)
     {
         cuDoubleComplex c;
@@ -376,6 +387,11 @@ private:
 State::State(UINT n, UINT batch_size) : impl_(std::make_shared<Impl>(n, batch_size)) {}
 
 State::~State() {}
+
+std::vector<std::complex<double>> State::get_vector(UINT sample) const
+{
+    return impl_->get_vector(sample);
+}
 
 std::complex<double> State::amplitude(UINT sample, UINT i) const
 {
