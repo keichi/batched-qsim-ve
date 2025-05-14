@@ -1,7 +1,8 @@
-// vim: set ft=cpp:
+// vim: set ft=c:
 #pragma _NEC options "-O4 -finline-functions -report-all"
 #pragma _NEC options "-fdiag-inline=0 -fdiag-parallel=0 -fdiag-vector=0"
 
+#include <complex.h>
 #include <math.h>
 
 #include <asl.h>
@@ -29,13 +30,14 @@ __attribute__((destructor)) void fini()
 void get_vector(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr, VEDAdeviceptr sv_ptr,
                 UINT sample, UINT batch_size, UINT n)
 {
-    double *state_re = NULL, *state_im = NULL, *sv = NULL;
+    const double *state_re = NULL, *state_im = NULL;
+    double  *sv = NULL;
     vedaMemPtr((void **)&state_re, state_re_ptr);
     vedaMemPtr((void **)&state_im, state_im_ptr);
     vedaMemPtr((void **)&sv, sv_ptr);
 
     for (ITYPE i = 0; i < 1ULL << n; i++) {
-        sv[(i << 1)]     = state_re[sample + i * batch_size];
+        sv[(i << 1)] = state_re[sample + i * batch_size];
         sv[(i << 1) + 1] = state_im[sample + i * batch_size];
     }
 }
@@ -43,7 +45,7 @@ void get_vector(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr, VEDAdevi
 void get_probability(double *prob, VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr, UINT i,
                      UINT batch_size, UINT n)
 {
-    double *state_re = NULL, *state_im = NULL;
+    const double *state_re = NULL, *state_im = NULL;
     vedaMemPtr((void **)&state_re, state_re_ptr);
     vedaMemPtr((void **)&state_im, state_im_ptr);
 
@@ -234,7 +236,7 @@ void act_rx_gate(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr, VEDAdev
             double tmp1_im = state_im[sample + i1 * batch_size];
 
             state_re[sample + i0 * batch_size] = cos_half * tmp0_re + sin_half * tmp1_im;
-            state_im[sample + i0 * batch_size] = cos_half * tmp0_im - sin_half  * tmp1_re;
+            state_im[sample + i0 * batch_size] = cos_half * tmp0_im - sin_half * tmp1_re;
 
             state_re[sample + i1 * batch_size] = sin_half * tmp0_im + cos_half * tmp1_re;
             state_im[sample + i1 * batch_size] = -sin_half * tmp0_re + cos_half * tmp1_im;
@@ -524,6 +526,84 @@ void act_depolarizing_gate_1q(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im
 
             state_re[sample + i1 * batch_size] = -tmp1_re;
             state_im[sample + i1 * batch_size] = -tmp1_im;
+        }
+    }
+}
+
+static UINT insert_zero_to_basis_index(UINT basis_index, UINT insert_index)
+{
+    UINT mask = (1ULL << insert_index) - 1;
+    UINT temp_basis = (basis_index >> insert_index) << (insert_index + 1);
+    return temp_basis | (basis_index & mask);
+}
+
+static double complex PHASE_90ROT[] = {1.0, 1.0i, -1.0, -1.0i};
+
+void observe(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr,
+             VEDAdeviceptr bit_flip_mask_ptr, VEDAdeviceptr phase_flip_mask_ptr,
+             VEDAdeviceptr coef_ptr, VEDAdeviceptr expectation_ptr, UINT num_terms, UINT batch_size,
+             UINT n)
+{
+    double *state_re = NULL, *state_im = NULL;
+    vedaMemPtr((void **)&state_re, state_re_ptr);
+    vedaMemPtr((void **)&state_im, state_im_ptr);
+
+    UINT *bit_flip_masks = NULL, *phase_flip_masks = NULL;
+    double complex *coefs = NULL, *expectations = NULL;
+    vedaMemPtr((void **)&bit_flip_masks, bit_flip_mask_ptr);
+    vedaMemPtr((void **)&phase_flip_masks, phase_flip_mask_ptr);
+    vedaMemPtr((void **)&coefs, coef_ptr);
+    vedaMemPtr((void **)&expectations, expectation_ptr);
+
+#pragma omp simd
+    for (UINT sample = 0; sample < batch_size; sample++) {
+        expectations[sample] = 0.0;
+    }
+
+     for (UINT term_id = 0; term_id < num_terms; term_id++) {
+        UINT bit_flip_mask = bit_flip_masks[term_id];
+        UINT phase_flip_mask = phase_flip_masks[term_id];
+        double complex coef = coefs[term_id];
+
+        if (bit_flip_mask == 0) {
+             for (UINT idx = 0; idx < 1ULL << (n - 1); idx++) {
+                UINT idx1 = idx << 1;
+                UINT idx2 = idx1 | 1;
+
+#pragma omp simd
+                for (UINT sample = 0; sample < batch_size; sample++) {
+                    double tmp1 =
+                        state_re[sample + idx1 * batch_size] * state_re[sample + idx1 * batch_size]
+                      + state_im[sample + idx1 * batch_size] * state_im[sample + idx1 * batch_size];
+                    if (__builtin_popcount(idx1 & phase_flip_mask) & 1) tmp1 = -tmp1;
+
+                    double tmp2 =
+                        state_re[sample + idx2 * batch_size] * state_re[sample + idx2 * batch_size]
+                      + state_im[sample + idx2 * batch_size] * state_im[sample + idx2 * batch_size];
+                    if (__builtin_popcount(idx2 & phase_flip_mask) & 1) tmp2 = -tmp2;
+
+                    expectations[sample] += coef * (tmp1 + tmp2);
+                }
+            }
+        } else {
+             for (UINT idx = 0; idx < 1ULL << (n - 1); idx++) {
+                UINT pivot = sizeof(UINT) * 8 - __builtin_clz(bit_flip_mask) - 1;
+                UINT global_phase_90rot_count = __builtin_popcount(bit_flip_mask & phase_flip_mask);
+                double complex global_phase = PHASE_90ROT[global_phase_90rot_count % 4];
+                UINT basis_0 = insert_zero_to_basis_index(idx, pivot);
+                UINT basis_1 = basis_0 ^ bit_flip_mask;
+
+#pragma omp simd
+                for (UINT sample = 0; sample < batch_size; sample++) {
+                    double complex tmp1 =
+                        state_re[sample + basis_0 * batch_size] + state_im[sample + basis_0 * batch_size] * I;
+                    double complex tmp2 =
+                        state_im[sample + basis_0 * batch_size] + state_im[sample + basis_1 * batch_size] * I;
+                    double tmp = creal(tmp1 * conj(tmp2) * global_phase * 2.);
+                    if (__builtin_popcount(basis_0 & phase_flip_mask) & 1) tmp = -tmp;
+                    expectations[sample] += coef * tmp;
+                }
+            }
         }
     }
 }

@@ -3,6 +3,7 @@
 
 #include <veda.h>
 
+#include "observable.hpp"
 #include "state.hpp"
 
 #define VEDA(err) check(err, __FILE__, __LINE__)
@@ -42,6 +43,7 @@ public:
         VEDA(vedaModuleGetFunction(&act_cx_gate_opt_, mod_, "act_cx_gate_opt"));
         VEDA(vedaModuleGetFunction(&act_cz_gate_opt_, mod_, "act_cz_gate_opt"));
         VEDA(vedaModuleGetFunction(&act_depolarizing_gate_1q_, mod_, "act_depolarizing_gate_1q"));
+        VEDA(vedaModuleGetFunction(&observe_, mod_, "observe"));
 
         VEDA(vedaMemAlloc(&state_re_ptr_, (1ULL << n) * batch_size * sizeof(double)));
         VEDA(vedaMemAlloc(&state_im_ptr_, (1ULL << n) * batch_size * sizeof(double)));
@@ -81,7 +83,8 @@ public:
         VEDA(vedaLaunchKernel(get_vector_, 0, args));
         VEDA(vedaArgsDestroy(args));
 
-        VEDA(vedaMemcpyDtoHAsync(sv.data(), sv_ptr, (1ULL << n_) * sizeof(std::complex<double>), 0));
+        VEDA(
+            vedaMemcpyDtoHAsync(sv.data(), sv_ptr, (1ULL << n_) * sizeof(std::complex<double>), 0));
         VEDA(vedaMemFreeAsync(sv_ptr, 0));
         VEDA(vedaStreamSynchronize(0));
 
@@ -405,6 +408,59 @@ public:
         act_depolarizing_gate_1q(control, 1.0 - std::sqrt(1.0 - prob));
     }
 
+    std::vector<std::complex<double>> observe(const Observable &obs) const
+    {
+        VEDAdeviceptr state_re_ptr, state_im_ptr;
+        VEDAdeviceptr bit_flip_mask_ptr, phase_flip_mask_ptr, coef_ptr, expectation_ptr;
+
+        std::vector<UINT> bit_flip_masks(batch_size_);
+        std::vector<UINT> phase_flip_masks(batch_size_);
+        std::vector<std::complex<double>> coefs(batch_size_);
+        std::vector<std::complex<double>> expectations(batch_size_);
+
+        for (int i = 0; i < obs.terms.size(); i++) {
+            bit_flip_masks[i] = obs.terms[i].bit_flip_mask;
+            phase_flip_masks[i] = obs.terms[i].phase_flip_mask;
+            coefs[i] = obs.terms[i].coef;
+        }
+
+        VEDA(vedaMemAllocAsync(&bit_flip_mask_ptr, batch_size_ * sizeof(UINT), 0));
+        VEDA(vedaMemAllocAsync(&phase_flip_mask_ptr, batch_size_ * sizeof(UINT), 0));
+        VEDA(vedaMemAllocAsync(&coef_ptr, batch_size_ * sizeof(std::complex<double>), 0));
+        VEDA(vedaMemAllocAsync(&expectation_ptr, batch_size_ * sizeof(std::complex<double>), 0));
+        VEDA(vedaMemcpyHtoDAsync(bit_flip_mask_ptr, bit_flip_masks.data(),
+                                batch_size_ * sizeof(UINT), 0));
+        VEDA(vedaMemcpyHtoDAsync(phase_flip_mask_ptr, phase_flip_masks.data(),
+                                batch_size_ * sizeof(UINT), 0));
+        VEDA(vedaMemcpyHtoDAsync(coef_ptr, coefs.data(), batch_size_ * sizeof(std::complex<double>),
+                                0));
+
+        VEDAargs args;
+        VEDA(vedaArgsCreate(&args));
+        VEDA(vedaArgsSetVPtr(args, 0, state_re_ptr_));
+        VEDA(vedaArgsSetVPtr(args, 1, state_im_ptr_));
+        VEDA(vedaArgsSetVPtr(args, 2, bit_flip_mask_ptr));
+        VEDA(vedaArgsSetVPtr(args, 3, phase_flip_mask_ptr));
+        VEDA(vedaArgsSetVPtr(args, 4, coef_ptr));
+        VEDA(vedaArgsSetVPtr(args, 5, expectation_ptr));
+        VEDA(vedaArgsSetU64(args, 6, obs.terms.size()));
+        VEDA(vedaArgsSetU64(args, 7, batch_size_));
+        VEDA(vedaArgsSetU64(args, 8, n_));
+        VEDA(vedaLaunchKernel(observe_, 0, args));
+        VEDA(vedaArgsDestroy(args));
+
+        VEDA(vedaMemcpyDtoHAsync(expectations.data(), expectation_ptr,
+                                 batch_size_ * sizeof(std::complex<double>), 0));
+
+        VEDA(vedaMemFreeAsync(bit_flip_mask_ptr, 0));
+        VEDA(vedaMemFreeAsync(phase_flip_mask_ptr, 0));
+        VEDA(vedaMemFreeAsync(coef_ptr, 0));
+        VEDA(vedaMemFreeAsync(expectation_ptr, 0));
+        VEDA(vedaStreamSynchronize(0));
+
+        return expectations;
+    }
+
     void synchronize() { VEDA(vedaCtxSynchronize()); }
 
 private:
@@ -434,6 +490,7 @@ private:
     VEDAfunction act_cx_gate_opt_;
     VEDAfunction act_cz_gate_opt_;
     VEDAfunction act_depolarizing_gate_1q_;
+    VEDAfunction observe_;
 };
 
 State::State(UINT n, UINT batch_size) : impl_(std::make_shared<Impl>(n, batch_size)) {}
@@ -472,7 +529,10 @@ void State::act_h_gate(UINT target) { impl_->act_h_gate(target); }
 
 void State::act_rx_gate(double theta, UINT target) { impl_->act_rx_gate(theta, target); }
 
-void State::act_rx_gate(const std::vector<double> &theta, UINT target) { impl_->act_rx_gate(theta, target); }
+void State::act_rx_gate(const std::vector<double> &theta, UINT target)
+{
+    impl_->act_rx_gate(theta, target);
+}
 
 void State::act_ry_gate(double theta, UINT target) { impl_->act_ry_gate(theta, target); }
 
@@ -490,7 +550,6 @@ void State::act_cnot_gate(UINT target, UINT control) { impl_->act_cnot_gate_opt(
 
 void State::act_iswaplike_gate(double theta, UINT target, UINT control)
 {
-
     impl_->act_iswaplike_gate(theta, target, control);
 }
 
@@ -506,6 +565,11 @@ void State::act_depolarizing_gate_1q(UINT target, double prob)
 void State::act_depolarizing_gate_2q(UINT target, UINT control, double prob)
 {
     impl_->act_depolarizing_gate_2q(target, control, prob);
+}
+
+std::vector<std::complex<double>> State::observe(const Observable &obs) const
+{
+    return impl_->observe(obs);
 }
 
 void State::synchronize() { impl_->synchronize(); }

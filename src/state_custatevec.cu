@@ -1,6 +1,7 @@
 // vim: set ft=cuda:
 #include <cmath>
 #include <random>
+#include <stdexcept>
 #include <vector>
 
 #include <cuComplex.h>
@@ -81,7 +82,7 @@ public:
 
     double get_probability(UINT i)
     {
-        // TODO
+        throw std::runtime_error("Not implemented");
     }
 
     UINT dim() const { return 1ULL << n_; }
@@ -371,6 +372,11 @@ public:
         act_depolarizing_gate_1q(control, 1.0 - std::sqrt(1.0 - prob));
     }
 
+    std::vector<std::complex<double>> observe(const Observable &obs) const
+    {
+        throw std::runtime_error("Not implemented");
+    }
+
     void synchronize() { HANDLE_CUDA_ERROR(cudaDeviceSynchronize()); }
 
 private:
@@ -457,6 +463,11 @@ void State::act_depolarizing_gate_1q(UINT target, double prob)
 void State::act_depolarizing_gate_2q(UINT target, UINT control, double prob)
 {
     impl_->act_depolarizing_gate_2q(target, control, prob);
+}
+
+std::vector<std::complex<double>> State::observe(const Observable &obs) const
+{
+     return impl_->observe(obs);
 }
 
 void State::synchronize() { impl_->synchronize(); }

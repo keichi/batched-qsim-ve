@@ -15,10 +15,10 @@ NB_MODULE(veqsim, m)
         .value("Z", PauliID::Z);
 
     nb::class_<PauliOperator>(m, "PauliOperator")
-        .def(nb::init<std::complex<double>, std::vector<uint64_t>, std::vector<uint64_t>>());
+        .def(nb::init<std::complex<double>, std::vector<UINT>, std::vector<UINT>>());
 
     nb::class_<Observable>(m, "Observable")
-        .def(nb::init())
+        .def(nb::init<>())
         .def("add_operator", &Observable::add_operator);
 
     nb::class_<State>(m, "State", "A batched state vector")

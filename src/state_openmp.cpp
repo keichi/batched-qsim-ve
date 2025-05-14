@@ -13,10 +13,10 @@
 #include "observable.hpp"
 #include "state.hpp"
 
-std::uint64_t insert_zero_to_basis_index(std::uint64_t basis_index, std::uint64_t insert_index)
+std::uint32_t insert_zero_to_basis_index(std::uint32_t basis_index, std::uint32_t insert_index)
 {
-    std::uint64_t mask = (1ULL << insert_index) - 1;
-    std::uint64_t temp_basis = (basis_index >> insert_index) << (insert_index + 1);
+    std::uint32_t mask = (1ULL << insert_index) - 1;
+    std::uint32_t temp_basis = (basis_index >> insert_index) << (insert_index + 1);
     return temp_basis | (basis_index & mask);
 }
 
@@ -611,17 +611,17 @@ public:
     {
         std::vector<std::complex<double>> res(batch_size_);
 
-        for (std::uint64_t term_id = 0; term_id < obs.terms.size(); term_id++) {
-            std::uint64_t bit_flip_mask = obs.terms[term_id].bit_flip_mask;
-            std::uint64_t phase_flip_mask = obs.terms[term_id].phase_flip_mask;
+        for (std::uint32_t term_id = 0; term_id < obs.terms.size(); term_id++) {
+            std::uint32_t bit_flip_mask = obs.terms[term_id].bit_flip_mask;
+            std::uint32_t phase_flip_mask = obs.terms[term_id].phase_flip_mask;
             std::complex<double> coef = obs.terms[term_id].coef;
 
             if (bit_flip_mask == 0) {
-                for (std::uint64_t idx = 0; idx < 1ULL << (n_ - 1); idx++) {
-                    std::uint64_t idx1 = idx << 1;
-                    std::uint64_t idx2 = idx1 | 1;
+                for (std::uint32_t idx = 0; idx < 1ULL << (n_ - 1); idx++) {
+                    std::uint32_t idx1 = idx << 1;
+                    std::uint32_t idx2 = idx1 | 1;
 
-                    for (std::uint64_t sample = 0; sample < batch_size_; sample++) {
+                    for (std::uint32_t sample = 0; sample < batch_size_; sample++) {
                         double tmp1 =
                             (std::conj(amplitude(sample, idx1)) * amplitude(sample, idx1)).real();
                         if (__builtin_popcount(idx1 & phase_flip_mask) & 1) tmp1 = -tmp1;
@@ -632,16 +632,16 @@ public:
                     }
                 }
             } else {
-                for (std::uint64_t idx = 0; idx < 1ULL << (n_ - 1); idx++) {
-                    std::uint64_t pivot =
-                        sizeof(std::uint64_t) * 8 - __builtin_clz(bit_flip_mask) - 1;
-                    std::uint64_t global_phase_90rot_count =
+                for (std::uint32_t idx = 0; idx < 1ULL << (n_ - 1); idx++) {
+                    std::uint32_t pivot =
+                        sizeof(std::uint32_t) * 8 - __builtin_clz(bit_flip_mask) - 1;
+                    std::uint32_t global_phase_90rot_count =
                         __builtin_popcount(bit_flip_mask & phase_flip_mask);
                     std::complex<double> global_phase = PHASE_90ROT()[global_phase_90rot_count % 4];
-                    std::uint64_t basis_0 = insert_zero_to_basis_index(idx, pivot);
-                    std::uint64_t basis_1 = basis_0 ^ bit_flip_mask;
+                    std::uint32_t basis_0 = insert_zero_to_basis_index(idx, pivot);
+                    std::uint32_t basis_1 = basis_0 ^ bit_flip_mask;
 
-                    for (std::uint64_t sample = 0; sample < batch_size_; sample++) {
+                    for (std::uint32_t sample = 0; sample < batch_size_; sample++) {
                         double tmp =
                             std::real(amplitude(sample, basis_0) *
                                       std::conj(amplitude(sample, basis_1)) * global_phase * 2.);
@@ -726,7 +726,6 @@ void State::act_cnot_gate(UINT target, UINT control) { impl_->act_cnot_gate_opt(
 
 void State::act_iswaplike_gate(double theta, UINT target, UINT control)
 {
-
     impl_->act_iswaplike_gate(theta, target, control);
 }
 
