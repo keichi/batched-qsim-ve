@@ -1,0 +1,12 @@
+[build-system]
+requires = ["scikit-build-core", "nanobind"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "veqsim"
+version = "0.0.1"
+
+[tool.scikit-build]
+build.targets = ["_veqsim"]
+cmake.version = ">=3.18"
+wheel.packages = ["python/veqsim"]

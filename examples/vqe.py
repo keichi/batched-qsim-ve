@@ -18,7 +18,7 @@ def cost(phi):
 
     noise_rate = 0.001
 
-    state = State(2, 100)
+    state = State(2, 10000)
     state.set_zero_state()
     state.act_rx_gate(phi[0], 0)
     state.act_depolarizing_gate_1q(0, noise_rate)

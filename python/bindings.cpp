@@ -6,7 +6,7 @@
 
 namespace nb = nanobind;
 
-NB_MODULE(veqsim, m)
+NB_MODULE(_veqsim, m)
 {
     nb::enum_<PauliID>(m, "PauliID")
         .value("I", PauliID::I)
