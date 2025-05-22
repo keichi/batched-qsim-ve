@@ -4,14 +4,15 @@
 #include <complex>
 #include <vector>
 
+namespace veqsim
+{
+
 enum PauliID : std::uint32_t { I, X, Y, Z };
 
-struct PauliOperator
-{
+struct PauliOperator {
     PauliOperator(std::complex<double> coef, const std::vector<std::uint32_t> &targets,
                   const std::vector<std::uint32_t> &pauli_ids)
-        : coef(coef), targets(targets), pauli_ids(pauli_ids), bit_flip_mask(0),
-          phase_flip_mask(0)
+        : coef(coef), targets(targets), pauli_ids(pauli_ids), bit_flip_mask(0), phase_flip_mask(0)
     {
         assert(targets.size() == pauli_ids.size());
 
@@ -35,11 +36,12 @@ struct PauliOperator
     std::uint32_t phase_flip_mask;
 };
 
-struct Observable
-{
+struct Observable {
     Observable() {}
 
     void add_operator(const PauliOperator &pauli) { terms.push_back(pauli); }
 
     std::vector<PauliOperator> terms;
 };
+
+} // namespace veqsim

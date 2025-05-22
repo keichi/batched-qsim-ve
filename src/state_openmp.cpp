@@ -14,6 +14,9 @@
 #include "observable.hpp"
 #include "state.hpp"
 
+namespace veqsim
+{
+
 std::uint32_t insert_zero_to_basis_index(std::uint32_t basis_index, std::uint32_t insert_index)
 {
     std::uint32_t mask = (1ULL << insert_index) - 1;
@@ -34,6 +37,14 @@ public:
         : state_re_((1ULL << n) * batch_size), state_im_((1ULL << n) * batch_size), n_(n),
           batch_size_(batch_size), mt_engine_(seed_gen_()), dist_(0.0, 1.0)
     {
+    }
+
+    ~Impl()
+    {
+    }
+
+    static void initialize()
+    {
 #ifdef __NEC__
         if (!asl_library_is_initialized()) {
             asl_library_initialize();
@@ -43,7 +54,7 @@ public:
 #endif
     }
 
-    ~Impl()
+    static void finalize()
     {
 #ifdef __NEC__
         asl_random_destroy(rng_);
@@ -663,16 +674,24 @@ private:
     UINT n_;
 
 #ifdef __NEC__
-    asl_random_t rng_;
+    static asl_random_t rng_;
 #endif
     std::random_device seed_gen_;
     std::mt19937 mt_engine_;
     std::uniform_real_distribution<double> dist_;
 };
 
+#ifdef __NEC__
+asl_random_t State::Impl::rng_;
+#endif
+
 State::State(UINT n, UINT batch_size) : impl_(std::make_shared<Impl>(n, batch_size)) {}
 
 State::~State() {}
+
+void State::initialize() { Impl::initialize(); }
+
+void State::finalize() { Impl::finalize(); }
 
 std::vector<std::complex<double>> State::get_vector(UINT sample) const
 {
@@ -750,3 +769,9 @@ std::vector<std::complex<double>> State::observe(const Observable &obs) const
 }
 
 void State::synchronize() {}
+
+void initialize() { State::initialize(); }
+
+void finalize() { State::initialize(); }
+
+}

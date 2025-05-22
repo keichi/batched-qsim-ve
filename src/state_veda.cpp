@@ -19,11 +19,34 @@ void check(VEDAresult err, const char *file, const int line)
     }
 }
 
+namespace veqsim
+{
+
 class State::Impl
 {
 public:
     Impl(UINT n, UINT batch_size)
         : n_(n), batch_size_(batch_size), mt_engine_(seed_gen_()), dist_(0.0, 1.0)
+    {
+        VEDA(vedaMemAlloc(&state_re_ptr_, (1ULL << n) * batch_size * sizeof(double)));
+        VEDA(vedaMemAlloc(&state_im_ptr_, (1ULL << n) * batch_size * sizeof(double)));
+        VEDA(vedaMemAlloc(&dice_ptr_, batch_size_ * sizeof(double)));
+        VEDA(vedaMemAlloc(&x_samples_ptr_, batch_size_ * sizeof(int)));
+        VEDA(vedaMemAlloc(&y_samples_ptr_, batch_size_ * sizeof(int)));
+        VEDA(vedaMemAlloc(&z_samples_ptr_, batch_size_ * sizeof(int)));
+    }
+
+    ~Impl()
+    {
+        VEDA(vedaMemFree(state_re_ptr_));
+        VEDA(vedaMemFree(state_im_ptr_));
+        VEDA(vedaMemFree(dice_ptr_));
+        VEDA(vedaMemFree(x_samples_ptr_));
+        VEDA(vedaMemFree(y_samples_ptr_));
+        VEDA(vedaMemFree(z_samples_ptr_));
+    }
+
+    static void initialize()
     {
         VEDA(vedaInit(0));
         VEDA(vedaDevicePrimaryCtxRetain(&context_, 0));
@@ -44,23 +67,12 @@ public:
         VEDA(vedaModuleGetFunction(&act_cz_gate_opt_, mod_, "act_cz_gate_opt"));
         VEDA(vedaModuleGetFunction(&act_depolarizing_gate_1q_, mod_, "act_depolarizing_gate_1q"));
         VEDA(vedaModuleGetFunction(&observe_, mod_, "observe"));
-
-        VEDA(vedaMemAlloc(&state_re_ptr_, (1ULL << n) * batch_size * sizeof(double)));
-        VEDA(vedaMemAlloc(&state_im_ptr_, (1ULL << n) * batch_size * sizeof(double)));
-        VEDA(vedaMemAlloc(&dice_ptr_, batch_size_ * sizeof(double)));
-        VEDA(vedaMemAlloc(&x_samples_ptr_, batch_size_ * sizeof(int)));
-        VEDA(vedaMemAlloc(&y_samples_ptr_, batch_size_ * sizeof(int)));
-        VEDA(vedaMemAlloc(&z_samples_ptr_, batch_size_ * sizeof(int)));
     }
 
-    ~Impl()
+    static void finalize()
     {
-        VEDA(vedaMemFree(state_re_ptr_));
-        VEDA(vedaMemFree(state_im_ptr_));
-        VEDA(vedaMemFree(dice_ptr_));
-        VEDA(vedaMemFree(x_samples_ptr_));
-        VEDA(vedaMemFree(y_samples_ptr_));
-        VEDA(vedaMemFree(z_samples_ptr_));
+        VEDA(vedaCtxSynchronize());
+        VEDA(vedaCtxDestroy(context_));
 
         VEDA(vedaExit());
     }
@@ -83,8 +95,7 @@ public:
         VEDA(vedaLaunchKernel(get_vector_, 0, args));
         VEDA(vedaArgsDestroy(args));
 
-        VEDA(
-            vedaMemcpyDtoHAsync(sv.data(), sv_ptr, (1ULL << n_) * sizeof(std::complex<double>), 0));
+        VEDA(vedaMemcpyDtoHAsync(sv.data(), sv_ptr, (1ULL << n_) * sizeof(std::complex<double>), 0));
         VEDA(vedaMemFreeAsync(sv_ptr, 0));
         VEDA(vedaStreamSynchronize(0));
 
@@ -474,28 +485,50 @@ private:
     VEDAdeviceptr state_re_ptr_, state_im_ptr_;
     VEDAdeviceptr dice_ptr_, x_samples_ptr_, y_samples_ptr_, z_samples_ptr_;
 
-    VEDAcontext context_;
-    VEDAmodule mod_;
+    static VEDAcontext context_;
+    static VEDAmodule mod_;
 
-    VEDAfunction get_vector_;
-    VEDAfunction get_probability_;
-    VEDAfunction set_zero_state_;
-    VEDAfunction act_single_qubit_gate_;
-    VEDAfunction act_two_qubit_gate_;
-    VEDAfunction act_rx_gate_;
-    VEDAfunction act_x_gate_opt_;
-    VEDAfunction act_y_gate_opt_;
-    VEDAfunction act_z_gate_opt_;
-    VEDAfunction act_cnot_gate_opt_;
-    VEDAfunction act_cx_gate_opt_;
-    VEDAfunction act_cz_gate_opt_;
-    VEDAfunction act_depolarizing_gate_1q_;
-    VEDAfunction observe_;
+    static VEDAfunction get_vector_;
+    static VEDAfunction get_probability_;
+    static VEDAfunction set_zero_state_;
+    static VEDAfunction act_single_qubit_gate_;
+    static VEDAfunction act_two_qubit_gate_;
+    static VEDAfunction act_rx_gate_;
+    static VEDAfunction act_x_gate_opt_;
+    static VEDAfunction act_y_gate_opt_;
+    static VEDAfunction act_z_gate_opt_;
+    static VEDAfunction act_cnot_gate_opt_;
+    static VEDAfunction act_cx_gate_opt_;
+    static VEDAfunction act_cz_gate_opt_;
+    static VEDAfunction act_depolarizing_gate_1q_;
+    static VEDAfunction observe_;
 };
+
+VEDAcontext State::Impl::context_;
+VEDAmodule State::Impl::mod_;
+
+VEDAfunction State::Impl::get_vector_;
+VEDAfunction State::Impl::get_probability_;
+VEDAfunction State::Impl::set_zero_state_;
+VEDAfunction State::Impl::act_single_qubit_gate_;
+VEDAfunction State::Impl::act_two_qubit_gate_;
+VEDAfunction State::Impl::act_rx_gate_;
+VEDAfunction State::Impl::act_x_gate_opt_;
+VEDAfunction State::Impl::act_y_gate_opt_;
+VEDAfunction State::Impl::act_z_gate_opt_;
+VEDAfunction State::Impl::act_cnot_gate_opt_;
+VEDAfunction State::Impl::act_cx_gate_opt_;
+VEDAfunction State::Impl::act_cz_gate_opt_;
+VEDAfunction State::Impl::act_depolarizing_gate_1q_;
+VEDAfunction State::Impl::observe_;
 
 State::State(UINT n, UINT batch_size) : impl_(std::make_shared<Impl>(n, batch_size)) {}
 
 State::~State() {}
+
+void State::initialize() { Impl::initialize(); }
+
+void State::finalize() { Impl::finalize(); }
 
 std::vector<std::complex<double>> State::get_vector(UINT sample) const
 {
@@ -573,3 +606,9 @@ std::vector<std::complex<double>> State::observe(const Observable &obs) const
 }
 
 void State::synchronize() { impl_->synchronize(); }
+
+void initialize() { State::initialize(); }
+
+void finalize() { State::initialize(); }
+
+}

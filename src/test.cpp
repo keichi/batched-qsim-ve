@@ -8,7 +8,8 @@ TEST_CASE("Set zero state")
     const int N = 2;
     const int BATCH_SIZE = 10;
 
-    State state(N, BATCH_SIZE);
+    veqsim::initialize();
+    veqsim::State state(N, BATCH_SIZE);
 
     state.set_zero_state();
 
@@ -21,6 +22,8 @@ TEST_CASE("Set zero state")
             REQUIRE(state.im(sample, i) == doctest::Approx(0.0));
         }
     }
+
+    veqsim::finalize();
 }
 
 TEST_CASE("RX gate")
@@ -28,7 +31,8 @@ TEST_CASE("RX gate")
     const int N = 2;
     const int BATCH_SIZE = 10;
 
-    State state(N, BATCH_SIZE);
+    veqsim::initialize();
+    veqsim::State state(N, BATCH_SIZE);
 
     state.set_zero_state();
 
@@ -46,6 +50,8 @@ TEST_CASE("RX gate")
         REQUIRE(state.re(sample, 3) == doctest::Approx(-0.22984884706593015));
         REQUIRE(state.im(sample, 3) == doctest::Approx(0.0));
     }
+
+    veqsim::finalize();
 }
 
 TEST_CASE("H gate")
@@ -53,7 +59,8 @@ TEST_CASE("H gate")
     const int N = 4;
     const int BATCH_SIZE = 10;
 
-    State state(N, BATCH_SIZE);
+    veqsim::initialize();
+    veqsim::State state(N, BATCH_SIZE);
 
     state.set_zero_state();
 
@@ -67,6 +74,8 @@ TEST_CASE("H gate")
             REQUIRE(state.im(sample, i) == doctest::Approx(0.0));
         }
     }
+
+    veqsim::finalize();
 }
 
 TEST_CASE("CZ gate")
@@ -74,7 +83,8 @@ TEST_CASE("CZ gate")
     const int N = 3;
     const int BATCH_SIZE = 10;
 
-    State state(N, BATCH_SIZE);
+    veqsim::initialize();
+    veqsim::State state(N, BATCH_SIZE);
 
     state.set_zero_state();
 
@@ -106,4 +116,6 @@ TEST_CASE("CZ gate")
         REQUIRE(state.re(sample, 7) == doctest::Approx(-0.3535533905932737));
         REQUIRE(state.im(sample, 7) == doctest::Approx(-0.0));
     }
+
+    veqsim::finalize();
 }

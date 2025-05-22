@@ -29,6 +29,9 @@
         }                                                                                          \
     };
 
+namespace veqsim
+{
+
 class State::Impl
 {
 public:
@@ -36,12 +39,20 @@ public:
         : n_(n), batch_size_(batch_size), mt_engine_(seed_gen_()), dist_(0.0, 1.0)
     {
         HANDLE_CUDA_ERROR(cudaMalloc(&state_, batch_size * (1ULL << n) * sizeof(cuDoubleComplex)));
-        HANDLE_ERROR(custatevecCreate(&handle_));
     }
 
     ~Impl()
     {
         HANDLE_CUDA_ERROR(cudaFree(state_));
+    }
+
+    static void initialize()
+    {
+        HANDLE_ERROR(custatevecCreate(&handle_));
+    }
+    
+    static void finalize()
+    {
         HANDLE_ERROR(custatevecDestroy(handle_));
     }
 
@@ -380,7 +391,7 @@ public:
     void synchronize() { HANDLE_CUDA_ERROR(cudaDeviceSynchronize()); }
 
 private:
-    custatevecHandle_t handle_;
+    static custatevecHandle_t handle_;
     cuDoubleComplex *state_;
     UINT batch_size_;
     UINT n_;
@@ -389,6 +400,8 @@ private:
     std::mt19937 mt_engine_;
     std::uniform_real_distribution<double> dist_;
 };
+
+static custatevecHandle_t State::Impl::handle_;
 
 State::State(UINT n, UINT batch_size) : impl_(std::make_shared<Impl>(n, batch_size)) {}
 
@@ -471,3 +484,9 @@ std::vector<std::complex<double>> State::observe(const Observable &obs) const
 }
 
 void State::synchronize() { impl_->synchronize(); }
+
+void initialize() { State::initialize(); }
+
+void finalize() { State::initialize(); }
+
+}

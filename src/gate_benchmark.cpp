@@ -47,11 +47,13 @@ int main(int argc, char *argv[])
         return 0;
     }
 
+    veqsim::initialize();
+
     std::random_device seed_gen;
     std::mt19937 engine(seed_gen());
     std::uniform_real_distribution<double> dist(0.0, M_PI * 2);
     std::vector<double> durations;
-    State state(n_qubits, batch_size);
+    veqsim::State state(n_qubits, batch_size);
 
     // Warmup run
     if (gate_name == "RX") {
@@ -92,6 +94,8 @@ int main(int argc, char *argv[])
             std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
         durations.push_back(duration.count() / 1e6);
     }
+
+    veqsim::finalize();
 
     double average = 0.0;
     for (int trial = 0; trial < n_trials; trial++) {

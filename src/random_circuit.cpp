@@ -11,7 +11,7 @@ UINT grid_to_id(UINT x, UINT y, UINT width) { return x + width * y; }
 
 bool in_grid(UINT x, UINT y, UINT width, UINT height) { return x < width && y < height; }
 
-void act_2q_gate(State &state, UINT width, UINT height, UINT x1, UINT y1, UINT x2, UINT y2,
+void act_2q_gate(veqsim::State &state, UINT width, UINT height, UINT x1, UINT y1, UINT x2, UINT y2,
                  double noise_rate)
 {
     if (!in_grid(x1, y1, width, height) || !in_grid(x2, y2, width, height)) {
@@ -29,7 +29,7 @@ void act_2q_gate(State &state, UINT width, UINT height, UINT x1, UINT y1, UINT x
     }
 }
 
-void act_random_1q_gate(State &state, double dice, UINT target, double noise_rate)
+void act_random_1q_gate(veqsim::State &state, double dice, UINT target, double noise_rate)
 {
     if (dice < 1.0 / 3.0) {
         state.act_sx_gate(target);
@@ -44,7 +44,7 @@ void act_random_1q_gate(State &state, double dice, UINT target, double noise_rat
     }
 }
 
-void run_single_batch(State &state, UINT width, UINT height, UINT DEPTH, std::mt19937 &engine,
+void run_single_batch(veqsim::State &state, UINT width, UINT height, UINT DEPTH, std::mt19937 &engine,
                       std::uniform_real_distribution<double> &dist, double noise_rate)
 {
     UINT n_qubits = width * height;
@@ -114,7 +114,9 @@ int main(int argc, char *argv[])
     std::uniform_real_distribution<double> dist(0, 1);
     std::vector<double> durations;
 
-    State state(n_qubits, batch_size);
+    veqsim::initialize();
+
+    veqsim::State state(n_qubits, batch_size);
     std::vector<double> probs(1ULL << n_qubits);
 
     // Warmup run
@@ -151,6 +153,8 @@ int main(int argc, char *argv[])
             }
         }
     }
+
+    veqsim::finalize();
 
     double average = 0.0;
     for (int trial = 0; trial < n_trials; trial++) {

@@ -9,12 +9,19 @@
 using UINT = unsigned int;
 using ITYPE = unsigned long long;
 
+namespace veqsim
+{
+
 class State
 {
 public:
     State(UINT n, UINT batch_size);
 
     ~State();
+
+    static void initialize();
+
+    static void finalize();
 
     std::vector<std::complex<double>> get_vector(UINT sample) const;
 
@@ -76,3 +83,9 @@ private:
     class Impl;
     std::shared_ptr<Impl> impl_;
 };
+
+void initialize();
+
+void finalize();
+
+}
