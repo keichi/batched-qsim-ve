@@ -21,19 +21,22 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(doctest)
 
-include(CheckLanguage)
-check_language(CUDA)
-
 find_package(Python 3.8 COMPONENTS Interpreter Development.Module REQUIRED)
-list(APPEND CMAKE_MODULE_PATH $ENV{HOME}/.local/lib/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/site-packages/veda/cmake)
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/.venv/lib/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/site-packages/veda/cmake)
-find_package(VEDA)
 
 # Detect the installed nanobind package and import it into CMake
 execute_process(
   COMMAND "${Python_EXECUTABLE}" -m nanobind --cmake_dir
   OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE nanobind_ROOT)
 find_package(nanobind CONFIG REQUIRED)
+
+include(CheckLanguage)
+check_language(CUDA)
+
+execute_process(
+  COMMAND "${Python_EXECUTABLE}" -c "import veda; print(veda.__path__[0] + '/cmake')"
+  ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE VEDA_ROOT)
+list(APPEND CMAKE_MODULE_PATH ${VEDA_ROOT})
+find_package(VEDA QUIET)
 
 if(CMAKE_CUDA_COMPILER)
     enable_language(CUDA)
