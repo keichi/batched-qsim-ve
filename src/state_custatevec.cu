@@ -50,7 +50,7 @@ public:
     {
         HANDLE_ERROR(custatevecCreate(&handle_));
     }
-    
+
     static void finalize()
     {
         HANDLE_ERROR(custatevecDestroy(handle_));
@@ -401,11 +401,15 @@ private:
     std::uniform_real_distribution<double> dist_;
 };
 
-static custatevecHandle_t State::Impl::handle_;
+custatevecHandle_t State::Impl::handle_;
 
 State::State(UINT n, UINT batch_size) : impl_(std::make_shared<Impl>(n, batch_size)) {}
 
 State::~State() {}
+
+void State::initialize() { Impl::initialize(); }
+
+void State::finalize() { Impl::finalize(); }
 
 std::vector<std::complex<double>> State::get_vector(UINT sample) const
 {
