@@ -31,10 +31,7 @@ cmake -DCMAKE_CUDA_ARCHITECTURES=80 \
 Make sure libomp is installed.
 
 ```
-cmake -DCMAKE_CXX_FLAGS="-I$(brew --prefix libomp)/include -Xpreprocessor -fopenmp" \
-      -DCMAKE_EXE_LINKER_FLAGS="-L$(brew --prefix libomp)/lib -lomp" \
-      -DCMAKE_MODULE_LINKER_FLAGS="-L$(brew --prefix)/lib -lomp" \
-      -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+cmake -DOpenMP_ROOT=$(brew --prefix)/opt/libomp \
       ..
 ```
 
