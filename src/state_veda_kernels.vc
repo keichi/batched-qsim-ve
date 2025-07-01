@@ -271,11 +271,11 @@ void act_ry_gate(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr, VEDAdev
             double tmp1_re = state_re[sample + i1 * batch_size];
             double tmp1_im = state_im[sample + i1 * batch_size];
 
-            state_re[sample + i0 * batch_size_] = cos_half * tmp0_re + sin_half * tmp1_im;
-            state_im[sample + i0 * batch_size_] = cos_half * tmp0_im - sin_half * tmp1_re;
+            state_re[sample + i0 * batch_size] = cos_half * tmp0_re + sin_half * tmp1_im;
+            state_im[sample + i0 * batch_size] = cos_half * tmp0_im - sin_half * tmp1_re;
 
-            state_re[sample + i1 * batch_size_] = sin_half * tmp0_im + cos_half * tmp1_re;
-            state_im[sample + i1 * batch_size_] = -sin_half * tmp0_re + cos_half * tmp1_im;
+            state_re[sample + i1 * batch_size] = sin_half * tmp0_im + cos_half * tmp1_re;
+            state_im[sample + i1 * batch_size] = -sin_half * tmp0_re + cos_half * tmp1_im;
         }
     }
 }
@@ -307,11 +307,11 @@ void act_rz_gate(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr, VEDAdev
             double tmp1_re = state_re[sample + i1 * batch_size];
             double tmp1_im = state_im[sample + i1 * batch_size];
 
-            state_re[sample + i0 * batch_size_] = cos_half * tmp0_re + sin_half * tmp0_im;
-            state_im[sample + i0 * batch_size_] = cos_half * tmp0_im - sin_half * tmp0_re;
+            state_re[sample + i0 * batch_size] = cos_half * tmp0_re + sin_half * tmp0_im;
+            state_im[sample + i0 * batch_size] = cos_half * tmp0_im - sin_half * tmp0_re;
 
-            state_re[sample + i1 * batch_size_] = cos_half * tmp1_re - sin_half * tmp1_im;
-            state_im[sample + i1 * batch_size_] = cos_half * tmp1_im + sin_half * tmp1_re;
+            state_re[sample + i1 * batch_size] = cos_half * tmp1_re - sin_half * tmp1_im;
+            state_im[sample + i1 * batch_size] = cos_half * tmp1_im + sin_half * tmp1_re;
         }
     }
 }
@@ -335,14 +335,14 @@ void act_p_gate(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr, VEDAdevi
 
 #pragma omp simd
         for (int sample = 0; sample < batch_size; sample++) {
-            double cos_half = cos(theta[sample] / 2);
-            double sin_half = sin(theta[sample] / 2);
+            double cos_ = cos(theta[sample] / 2);
+            double sin_ = sin(theta[sample] / 2);
 
             double tmp1_re = state_re[sample + i1 * batch_size];
             double tmp1_im = state_im[sample + i1 * batch_size];
 
-            state_re_[sample + i1 * batch_size_] = cos * tmp1_re - sin * tmp1_im;
-            state_im_[sample + i1 * batch_size_] = cos * tmp1_im + sin * tmp1_re;
+            state_re[sample + i1 * batch_size] = cos_ * tmp1_re - sin_ * tmp1_im;
+            state_im[sample + i1 * batch_size] = cos_ * tmp1_im + sin_ * tmp1_re;
         }
     }
 }

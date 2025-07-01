@@ -58,10 +58,10 @@ public:
         VEDA(vedaModuleGetFunction(&set_zero_state_, mod_, "set_zero_state"));
         VEDA(vedaModuleGetFunction(&act_single_qubit_gate_, mod_, "act_single_qubit_gate"));
         VEDA(vedaModuleGetFunction(&act_two_qubit_gate_, mod_, "act_two_qubit_gate"));
-        VEDA(vedaModuleGetFunction(&act_rx_gate, mod_, "act_rx_gate"));
-        VEDA(vedaModuleGetFunction(&act_ry_gate, mod_, "act_ry_gate"));
-        VEDA(vedaModuleGetFunction(&act_rz_gate, mod_, "act_rz_gate"));
-        VEDA(vedaModuleGetFunction(&act_p_gate, mod_, "act_p_gate"));
+        VEDA(vedaModuleGetFunction(&act_rx_gate_, mod_, "act_rx_gate"));
+        VEDA(vedaModuleGetFunction(&act_ry_gate_, mod_, "act_ry_gate"));
+        VEDA(vedaModuleGetFunction(&act_rz_gate_, mod_, "act_rz_gate"));
+        VEDA(vedaModuleGetFunction(&act_p_gate_, mod_, "act_p_gate"));
         VEDA(vedaModuleGetFunction(&act_x_gate_opt_, mod_, "act_x_gate_opt"));
         VEDA(vedaModuleGetFunction(&act_y_gate_opt_, mod_, "act_y_gate_opt"));
         VEDA(vedaModuleGetFunction(&act_z_gate_opt_, mod_, "act_z_gate_opt"));

@@ -587,6 +587,6 @@ void State::synchronize() { impl_->synchronize(); }
 
 void initialize() { State::initialize(); }
 
-void finalize() { State::initialize(); }
+void finalize() { State::finalize(); }
 
 }
