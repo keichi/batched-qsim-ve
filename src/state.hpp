@@ -53,7 +53,15 @@ public:
 
     void act_ry_gate(double theta, UINT target);
 
+    void act_ry_gate(const std::vector<double> &theta, UINT target);
+
     void act_rz_gate(double theta, UINT target);
+
+    void act_rz_gate(const std::vector<double> &theta, UINT target);
+
+    void act_p_gate(double theta, UINT target);
+
+    void act_p_gate(const std::vector<double> &theta, UINT target);
 
     void act_sx_gate(UINT target);
 

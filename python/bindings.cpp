@@ -50,8 +50,21 @@ NB_MODULE(_veqsim, m)
         .def("act_rx_gate",
              nb::overload_cast<const std::vector<double> &, UINT>(&vq::State::act_rx_gate),
              "theta"_a, "target"_a, "Act an RX gate with different angles")
-        .def("act_ry_gate", &vq::State::act_ry_gate, "theta"_a, "target"_a, "Apply an RY gate")
-        .def("act_rz_gate", &vq::State::act_rz_gate, "theta"_a, "target"_a, "Apply an RZ gate")
+        .def("act_ry_gate", nb::overload_cast<double, UINT>(&vq::State::act_ry_gate),
+             "theta"_a, "target"_a, "Apply an RY gate")
+        .def("act_ry_gate",
+             nb::overload_cast<const std::vector<double> &, UINT>(&vq::State::act_ry_gate),
+             "theta"_a, "target"_a, "Act an RY gate with different angles")
+        .def("act_rz_gate", nb::overload_cast<double, UINT>(&vq::State::act_rz_gate),
+             "theta"_a, "target"_a, "Apply an RZ gate")
+        .def("act_rz_gate",
+             nb::overload_cast<const std::vector<double> &, UINT>(&vq::State::act_rz_gate),
+             "theta"_a, "target"_a, "Act an RZ gate with different angles")
+        .def("act_p_gate", nb::overload_cast<double, UINT>(&vq::State::act_p_gate),
+             "theta"_a, "target"_a, "Apply a P gate")
+        .def("act_p_gate",
+             nb::overload_cast<const std::vector<double> &, UINT>(&vq::State::act_p_gate),
+             "theta"_a, "target"_a, "Act a P gate with different angles")
         .def("act_sx_gate", &vq::State::act_sx_gate,  "target"_a, "Apply an SX gate")
         .def("act_sy_gate", &vq::State::act_sy_gate, "target"_a, "Apply an SY gate")
         .def("act_sw_gate", &vq::State::act_sw_gate, "target"_a, "Apply an SW gate")

@@ -244,6 +244,109 @@ void act_rx_gate(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr, VEDAdev
     }
 }
 
+void act_ry_gate(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr, VEDAdeviceptr theta_ptr,
+                 UINT target, UINT batch_size, UINT n)
+{
+    double *state_re = NULL, *state_im = NULL, *theta = NULL;
+    vedaMemPtr((void **)&state_re, state_re_ptr);
+    vedaMemPtr((void **)&state_im, state_im_ptr);
+    vedaMemPtr((void **)&theta, theta_ptr);
+
+    ITYPE mask = 1ULL << target;
+    ITYPE lo_mask = mask - 1;
+    ITYPE hi_mask = ~lo_mask;
+
+#pragma omp parallel for
+    for (ITYPE i = 0; i < 1ULL << (n - 1); i++) {
+        ITYPE i0 = ((i & hi_mask) << 1) | (i & lo_mask);
+        ITYPE i1 = i0 | mask;
+
+#pragma omp simd
+        for (int sample = 0; sample < batch_size; sample++) {
+            double cos_half = cos(theta[sample] / 2);
+            double sin_half = sin(theta[sample] / 2);
+
+            double tmp0_re = state_re[sample + i0 * batch_size];
+            double tmp0_im = state_im[sample + i0 * batch_size];
+            double tmp1_re = state_re[sample + i1 * batch_size];
+            double tmp1_im = state_im[sample + i1 * batch_size];
+
+            state_re[sample + i0 * batch_size_] = cos_half * tmp0_re + sin_half * tmp1_im;
+            state_im[sample + i0 * batch_size_] = cos_half * tmp0_im - sin_half * tmp1_re;
+
+            state_re[sample + i1 * batch_size_] = sin_half * tmp0_im + cos_half * tmp1_re;
+            state_im[sample + i1 * batch_size_] = -sin_half * tmp0_re + cos_half * tmp1_im;
+        }
+    }
+}
+
+void act_rz_gate(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr, VEDAdeviceptr theta_ptr,
+                 UINT target, UINT batch_size, UINT n)
+{
+    double *state_re = NULL, *state_im = NULL, *theta = NULL;
+    vedaMemPtr((void **)&state_re, state_re_ptr);
+    vedaMemPtr((void **)&state_im, state_im_ptr);
+    vedaMemPtr((void **)&theta, theta_ptr);
+
+    ITYPE mask = 1ULL << target;
+    ITYPE lo_mask = mask - 1;
+    ITYPE hi_mask = ~lo_mask;
+
+#pragma omp parallel for
+    for (ITYPE i = 0; i < 1ULL << (n - 1); i++) {
+        ITYPE i0 = ((i & hi_mask) << 1) | (i & lo_mask);
+        ITYPE i1 = i0 | mask;
+
+#pragma omp simd
+        for (int sample = 0; sample < batch_size; sample++) {
+            double cos_half = cos(theta[sample] / 2);
+            double sin_half = sin(theta[sample] / 2);
+
+            double tmp0_re = state_re[sample + i0 * batch_size];
+            double tmp0_im = state_im[sample + i0 * batch_size];
+            double tmp1_re = state_re[sample + i1 * batch_size];
+            double tmp1_im = state_im[sample + i1 * batch_size];
+
+            state_re[sample + i0 * batch_size_] = cos_half * tmp0_re + sin_half * tmp0_im;
+            state_im[sample + i0 * batch_size_] = cos_half * tmp0_im - sin_half * tmp0_re;
+
+            state_re[sample + i1 * batch_size_] = cos_half * tmp1_re - sin_half * tmp1_im;
+            state_im[sample + i1 * batch_size_] = cos_half * tmp1_im + sin_half * tmp1_re;
+        }
+    }
+}
+
+void act_p_gate(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr, VEDAdeviceptr theta_ptr,
+                 UINT target, UINT batch_size, UINT n)
+{
+    double *state_re = NULL, *state_im = NULL, *theta = NULL;
+    vedaMemPtr((void **)&state_re, state_re_ptr);
+    vedaMemPtr((void **)&state_im, state_im_ptr);
+    vedaMemPtr((void **)&theta, theta_ptr);
+
+    ITYPE mask = 1ULL << target;
+    ITYPE lo_mask = mask - 1;
+    ITYPE hi_mask = ~lo_mask;
+
+#pragma omp parallel for
+    for (ITYPE i = 0; i < 1ULL << (n - 1); i++) {
+        ITYPE i0 = ((i & hi_mask) << 1) | (i & lo_mask);
+        ITYPE i1 = i0 | mask;
+
+#pragma omp simd
+        for (int sample = 0; sample < batch_size; sample++) {
+            double cos_half = cos(theta[sample] / 2);
+            double sin_half = sin(theta[sample] / 2);
+
+            double tmp1_re = state_re[sample + i1 * batch_size];
+            double tmp1_im = state_im[sample + i1 * batch_size];
+
+            state_re_[sample + i1 * batch_size_] = cos * tmp1_re - sin * tmp1_im;
+            state_im_[sample + i1 * batch_size_] = cos * tmp1_im + sin * tmp1_re;
+        }
+    }
+}
+
 void act_x_gate_opt(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr, UINT target,
                     UINT batch_size, UINT n)
 {

@@ -58,7 +58,10 @@ public:
         VEDA(vedaModuleGetFunction(&set_zero_state_, mod_, "set_zero_state"));
         VEDA(vedaModuleGetFunction(&act_single_qubit_gate_, mod_, "act_single_qubit_gate"));
         VEDA(vedaModuleGetFunction(&act_two_qubit_gate_, mod_, "act_two_qubit_gate"));
-        VEDA(vedaModuleGetFunction(&act_x_gate_opt_, mod_, "act_rx_gate"));
+        VEDA(vedaModuleGetFunction(&act_rx_gate, mod_, "act_rx_gate"));
+        VEDA(vedaModuleGetFunction(&act_ry_gate, mod_, "act_ry_gate"));
+        VEDA(vedaModuleGetFunction(&act_rz_gate, mod_, "act_rz_gate"));
+        VEDA(vedaModuleGetFunction(&act_p_gate, mod_, "act_p_gate"));
         VEDA(vedaModuleGetFunction(&act_x_gate_opt_, mod_, "act_x_gate_opt"));
         VEDA(vedaModuleGetFunction(&act_y_gate_opt_, mod_, "act_y_gate_opt"));
         VEDA(vedaModuleGetFunction(&act_z_gate_opt_, mod_, "act_z_gate_opt"));
@@ -279,10 +282,31 @@ public:
 
     void act_ry_gate(double theta, UINT target)
     {
-        double matrix_re[2][2] = {{std::cos(theta / 2), 0}, {0, std::cos(theta / 2)}};
-        double matrix_im[2][2] = {{0, -std::sin(theta / 2)}, {-std::sin(theta / 2), 0}};
+        double matrix_re[2][2] = {{std::cos(theta / 2), -std::sin(theta / 2)},
+                                  {std::sin(theta / 2), std::cos(theta / 2)}};
+        double matrix_im[2][2] = {{0, 0}, {0, 0}};
 
         act_single_qubit_gate(matrix_re, matrix_im, target);
+    }
+
+    void act_ry_gate(const std::vector<double> &theta, UINT target)
+    {
+        VEDAdeviceptr theta_ptr;
+        VEDA(vedaMemAllocAsync(&theta_ptr, batch_size_ * sizeof(double), 0));
+        VEDA(vedaMemcpyHtoDAsync(theta_ptr, theta.data(), batch_size_ * sizeof(double), 0));
+
+        VEDAargs args;
+        VEDA(vedaArgsCreate(&args));
+        VEDA(vedaArgsSetVPtr(args, 0, state_re_ptr_));
+        VEDA(vedaArgsSetVPtr(args, 1, state_im_ptr_));
+        VEDA(vedaArgsSetVPtr(args, 2, theta_ptr));
+        VEDA(vedaArgsSetU64(args, 3, target));
+        VEDA(vedaArgsSetU64(args, 4, batch_size_));
+        VEDA(vedaArgsSetU64(args, 5, n_));
+        VEDA(vedaLaunchKernel(act_ry_gate_, 0, args));
+        VEDA(vedaArgsDestroy(args));
+
+        VEDA(vedaMemFreeAsync(theta_ptr, 0));
     }
 
     void act_rz_gate(double theta, UINT target)
@@ -291,6 +315,54 @@ public:
         double matrix_im[2][2] = {{-std::sin(theta / 2), 0}, {0, std::sin(theta / 2)}};
 
         act_single_qubit_gate(matrix_re, matrix_im, target);
+    }
+
+    void act_rz_gate(const std::vector<double> &theta, UINT target)
+    {
+        VEDAdeviceptr theta_ptr;
+        VEDA(vedaMemAllocAsync(&theta_ptr, batch_size_ * sizeof(double), 0));
+        VEDA(vedaMemcpyHtoDAsync(theta_ptr, theta.data(), batch_size_ * sizeof(double), 0));
+
+        VEDAargs args;
+        VEDA(vedaArgsCreate(&args));
+        VEDA(vedaArgsSetVPtr(args, 0, state_re_ptr_));
+        VEDA(vedaArgsSetVPtr(args, 1, state_im_ptr_));
+        VEDA(vedaArgsSetVPtr(args, 2, theta_ptr));
+        VEDA(vedaArgsSetU64(args, 3, target));
+        VEDA(vedaArgsSetU64(args, 4, batch_size_));
+        VEDA(vedaArgsSetU64(args, 5, n_));
+        VEDA(vedaLaunchKernel(act_rz_gate_, 0, args));
+        VEDA(vedaArgsDestroy(args));
+
+        VEDA(vedaMemFreeAsync(theta_ptr, 0));
+    }
+
+    void act_p_gate(double theta, UINT target)
+    {
+        double matrix_re[2][2] = {{1, 0}, {0, std::cos(theta)}};
+        double matrix_im[2][2] = {{0, 0}, {0, std::sin(theta)}};
+
+        act_single_qubit_gate(matrix_re, matrix_im, target);
+    }
+
+    void act_p_gate(const std::vector<double> &theta, UINT target)
+    {
+        VEDAdeviceptr theta_ptr;
+        VEDA(vedaMemAllocAsync(&theta_ptr, batch_size_ * sizeof(double), 0));
+        VEDA(vedaMemcpyHtoDAsync(theta_ptr, theta.data(), batch_size_ * sizeof(double), 0));
+
+        VEDAargs args;
+        VEDA(vedaArgsCreate(&args));
+        VEDA(vedaArgsSetVPtr(args, 0, state_re_ptr_));
+        VEDA(vedaArgsSetVPtr(args, 1, state_im_ptr_));
+        VEDA(vedaArgsSetVPtr(args, 2, theta_ptr));
+        VEDA(vedaArgsSetU64(args, 3, target));
+        VEDA(vedaArgsSetU64(args, 4, batch_size_));
+        VEDA(vedaArgsSetU64(args, 5, n_));
+        VEDA(vedaLaunchKernel(act_p_gate_, 0, args));
+        VEDA(vedaArgsDestroy(args));
+
+        VEDA(vedaMemFreeAsync(theta_ptr, 0));
     }
 
     void act_sx_gate(UINT target)
@@ -494,6 +566,9 @@ private:
     static VEDAfunction act_single_qubit_gate_;
     static VEDAfunction act_two_qubit_gate_;
     static VEDAfunction act_rx_gate_;
+    static VEDAfunction act_ry_gate_;
+    static VEDAfunction act_rz_gate_;
+    static VEDAfunction act_p_gate_;
     static VEDAfunction act_x_gate_opt_;
     static VEDAfunction act_y_gate_opt_;
     static VEDAfunction act_z_gate_opt_;
@@ -513,6 +588,9 @@ VEDAfunction State::Impl::set_zero_state_;
 VEDAfunction State::Impl::act_single_qubit_gate_;
 VEDAfunction State::Impl::act_two_qubit_gate_;
 VEDAfunction State::Impl::act_rx_gate_;
+VEDAfunction State::Impl::act_ry_gate_;
+VEDAfunction State::Impl::act_rz_gate_;
+VEDAfunction State::Impl::act_p_gate_;
 VEDAfunction State::Impl::act_x_gate_opt_;
 VEDAfunction State::Impl::act_y_gate_opt_;
 VEDAfunction State::Impl::act_z_gate_opt_;
@@ -569,7 +647,24 @@ void State::act_rx_gate(const std::vector<double> &theta, UINT target)
 
 void State::act_ry_gate(double theta, UINT target) { impl_->act_ry_gate(theta, target); }
 
+void State::act_ry_gate(const std::vector<double> &theta, UINT target)
+{
+    impl_->act_ry_gate(theta, target);
+}
+
 void State::act_rz_gate(double theta, UINT target) { impl_->act_rz_gate(theta, target); }
+
+void State::act_rz_gate(const std::vector<double> &theta, UINT target)
+{
+    impl_->act_rz_gate(theta, target);
+}
+
+void State::act_p_gate(double theta, UINT target) { impl_->act_p_gate(theta, target); }
+
+void State::act_p_gate(const std::vector<double> &theta, UINT target)
+{
+    impl_->act_p_gate(theta, target);
+}
 
 void State::act_sx_gate(UINT target) { impl_->act_sx_gate(target); }
 

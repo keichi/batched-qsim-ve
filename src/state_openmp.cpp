@@ -339,8 +339,8 @@ public:
 
 #pragma omp simd
             for (int sample = 0; sample < batch_size_; sample++) {
-                double cos_half = cos(theta[sample] / 2);
-                double sin_half = sin(theta[sample] / 2);
+                double cos_half = std::cos(theta[sample] / 2);
+                double sin_half = std::sin(theta[sample] / 2);
 
                 double tmp0_re = state_re_[sample + i0 * batch_size_];
                 double tmp0_im = state_im_[sample + i0 * batch_size_];
@@ -358,10 +358,41 @@ public:
 
     void act_ry_gate(double theta, UINT target)
     {
-        double matrix_re[2][2] = {{std::cos(theta / 2), 0}, {0, std::cos(theta / 2)}};
-        double matrix_im[2][2] = {{0, -std::sin(theta / 2)}, {-std::sin(theta / 2), 0}};
+        double matrix_re[2][2] = {{std::cos(theta / 2), -std::sin(theta / 2)},
+                                  {std::sin(theta / 2), std::cos(theta / 2)}};
+        double matrix_im[2][2] = {{0, 0}, {0, 0}};
 
         act_single_qubit_gate(matrix_re, matrix_im, target);
+    }
+
+    void act_ry_gate(const std::vector<double> &theta, UINT target)
+    {
+        ITYPE mask = 1ULL << target;
+        ITYPE lo_mask = mask - 1;
+        ITYPE hi_mask = ~lo_mask;
+
+#pragma omp parallel for
+        for (ITYPE i = 0; i < 1ULL << (n_ - 1); i++) {
+            ITYPE i0 = ((i & hi_mask) << 1) | (i & lo_mask);
+            ITYPE i1 = i0 | mask;
+
+#pragma omp simd
+            for (int sample = 0; sample < batch_size_; sample++) {
+                double cos_half = std::cos(theta[sample] / 2);
+                double sin_half = std::sin(theta[sample] / 2);
+
+                double tmp0_re = state_re_[sample + i0 * batch_size_];
+                double tmp0_im = state_im_[sample + i0 * batch_size_];
+                double tmp1_re = state_re_[sample + i1 * batch_size_];
+                double tmp1_im = state_im_[sample + i1 * batch_size_];
+
+                state_re_[sample + i0 * batch_size_] = cos_half * tmp0_re - sin_half * tmp1_re;
+                state_im_[sample + i0 * batch_size_] = cos_half * tmp0_im - sin_half * tmp1_im;
+
+                state_re_[sample + i1 * batch_size_] = sin_half * tmp0_re + cos_half * tmp1_re;
+                state_im_[sample + i1 * batch_size_] = sin_half * tmp0_im + cos_half * tmp1_im;
+            }
+        }
     }
 
     void act_rz_gate(double theta, UINT target)
@@ -370,6 +401,69 @@ public:
         double matrix_im[2][2] = {{-std::sin(theta / 2), 0}, {0, std::sin(theta / 2)}};
 
         act_single_qubit_gate(matrix_re, matrix_im, target);
+    }
+
+    void act_rz_gate(const std::vector<double> &theta, UINT target)
+    {
+        ITYPE mask = 1ULL << target;
+        ITYPE lo_mask = mask - 1;
+        ITYPE hi_mask = ~lo_mask;
+
+#pragma omp parallel for
+        for (ITYPE i = 0; i < 1ULL << (n_ - 1); i++) {
+            ITYPE i0 = ((i & hi_mask) << 1) | (i & lo_mask);
+            ITYPE i1 = i0 | mask;
+
+#pragma omp simd
+            for (int sample = 0; sample < batch_size_; sample++) {
+                double cos_half = std::cos(theta[sample] / 2);
+                double sin_half = std::sin(theta[sample] / 2);
+
+                double tmp0_re = state_re_[sample + i0 * batch_size_];
+                double tmp0_im = state_im_[sample + i0 * batch_size_];
+                double tmp1_re = state_re_[sample + i1 * batch_size_];
+                double tmp1_im = state_im_[sample + i1 * batch_size_];
+
+                state_re_[sample + i0 * batch_size_] = cos_half * tmp0_re + sin_half * tmp0_im;
+                state_im_[sample + i0 * batch_size_] = cos_half * tmp0_im - sin_half * tmp0_re;
+
+                state_re_[sample + i1 * batch_size_] = cos_half * tmp1_re - sin_half * tmp1_im;
+                state_im_[sample + i1 * batch_size_] = cos_half * tmp1_im + sin_half * tmp1_re;
+            }
+        }
+    }
+
+    void act_p_gate(double theta, UINT target)
+    {
+        double matrix_re[2][2] = {{1, 0}, {0, std::cos(theta)}};
+        double matrix_im[2][2] = {{0, 0}, {0, std::sin(theta)}};
+
+        act_single_qubit_gate(matrix_re, matrix_im, target);
+    }
+
+    void act_p_gate(const std::vector<double> &theta, UINT target)
+    {
+        ITYPE mask = 1ULL << target;
+        ITYPE lo_mask = mask - 1;
+        ITYPE hi_mask = ~lo_mask;
+
+#pragma omp parallel for
+        for (ITYPE i = 0; i < 1ULL << (n_ - 1); i++) {
+            ITYPE i0 = ((i & hi_mask) << 1) | (i & lo_mask);
+            ITYPE i1 = i0 | mask;
+
+#pragma omp simd
+            for (int sample = 0; sample < batch_size_; sample++) {
+                double cos = std::cos(theta[sample] / 2);
+                double sin = std::sin(theta[sample] / 2);
+
+                double tmp1_re = state_re_[sample + i1 * batch_size_];
+                double tmp1_im = state_im_[sample + i1 * batch_size_];
+
+                state_re_[sample + i1 * batch_size_] = cos * tmp1_re - sin * tmp1_im;
+                state_im_[sample + i1 * batch_size_] = cos * tmp1_im + sin * tmp1_re;
+            }
+        }
     }
 
     void act_sx_gate(UINT target)
@@ -732,7 +826,24 @@ void State::act_rx_gate(const std::vector<double> &theta, UINT target)
 
 void State::act_ry_gate(double theta, UINT target) { impl_->act_ry_gate(theta, target); }
 
+void State::act_ry_gate(const std::vector<double> &theta, UINT target)
+{
+    impl_->act_ry_gate(theta, target);
+}
+
 void State::act_rz_gate(double theta, UINT target) { impl_->act_rz_gate(theta, target); }
+
+void State::act_rz_gate(const std::vector<double> &theta, UINT target)
+{
+    impl_->act_rz_gate(theta, target);
+}
+
+void State::act_p_gate(double theta, UINT target) { impl_->act_p_gate(theta, target); }
+
+void State::act_p_gate(const std::vector<double> &theta, UINT target)
+{
+    impl_->act_p_gate(theta, target);
+}
 
 void State::act_sx_gate(UINT target) { impl_->act_sx_gate(target); }
 

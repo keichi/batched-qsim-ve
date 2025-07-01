@@ -228,6 +228,29 @@ public:
         act_single_qubit_gate(matrix, target);
     }
 
+    void act_ry_gate(const std::vector<double> &theta, UINT target)
+    {
+        int32_t targets[] = {static_cast<int32_t>(target)};
+        std::vector<int> matrix_indices(batch_size_);
+        std::vector<cuDoubleComplex> matrices(batch_size_ * 4);
+
+        for (int i = 0; i < batch_size_; i++) {
+            double cos_half = std::cos(theta[i] / 2), sin_half = std::sin(theta[i] / 2);
+
+            matrix_indices[i] = i;
+            matrices[i * 4 + 0] = make_cuDoubleComplex(cos_half, 0);
+            matrices[i * 4 + 1] = make_cuDoubleComplex(-sin_half, 0);
+            matrices[i * 4 + 2] = make_cuDoubleComplex(sin_half, 0);
+            matrices[i * 4 + 3] = make_cuDoubleComplex(cos_half, 0);
+        }
+
+        HANDLE_ERROR(custatevecApplyMatrixBatched(
+            handle_, state_, CUDA_C_64F, n_, batch_size_, 1ULL << n_,
+            CUSTATEVEC_MATRIX_MAP_TYPE_MATRIX_INDEXED, matrix_indices.data(), matrices.data(),
+            CUDA_C_64F, CUSTATEVEC_MATRIX_LAYOUT_ROW, 0, batch_size_, targets, 1, nullptr, nullptr,
+            0, CUSTATEVEC_COMPUTE_64F, nullptr, 0));
+    }
+
     void act_rz_gate(double theta, UINT target)
     {
         double cos_half = std::cos(theta / 2), sin_half = std::sin(theta / 2);
@@ -236,6 +259,62 @@ public:
             {make_cuDoubleComplex(0, 0), make_cuDoubleComplex(cos_half, sin_half)}};
 
         act_single_qubit_gate(matrix, target);
+    }
+
+    void act_rz_gate(const std::vector<double> &theta, UINT target)
+    {
+        int32_t targets[] = {static_cast<int32_t>(target)};
+        std::vector<int> matrix_indices(batch_size_);
+        std::vector<cuDoubleComplex> matrices(batch_size_ * 4);
+
+        for (int i = 0; i < batch_size_; i++) {
+            double cos_half = std::cos(theta[i] / 2), sin_half = std::sin(theta[i] / 2);
+
+            matrix_indices[i] = i;
+            matrices[i * 4 + 0] = make_cuDoubleComplex(cos_half, -sin_half);
+            matrices[i * 4 + 1] = make_cuDoubleComplex(0, 0);
+            matrices[i * 4 + 2] = make_cuDoubleComplex(0, 0);
+            matrices[i * 4 + 3] = make_cuDoubleComplex(cos_half, sin_half);
+        }
+
+        HANDLE_ERROR(custatevecApplyMatrixBatched(
+            handle_, state_, CUDA_C_64F, n_, batch_size_, 1ULL << n_,
+            CUSTATEVEC_MATRIX_MAP_TYPE_MATRIX_INDEXED, matrix_indices.data(), matrices.data(),
+            CUDA_C_64F, CUSTATEVEC_MATRIX_LAYOUT_ROW, 0, batch_size_, targets, 1, nullptr, nullptr,
+            0, CUSTATEVEC_COMPUTE_64F, nullptr, 0));
+    }
+
+    void act_p_gate(double theta, UINT target)
+    {
+        double cos = std::cos(theta), sin = std::sin(theta);
+        cuDoubleComplex matrix[2][2] = {
+            {make_cuDoubleComplex(1, 0), make_cuDoubleComplex(0, 0)},
+            {make_cuDoubleComplex(0, 0), make_cuDoubleComplex(cos, sin)}};
+
+        act_single_qubit_gate(matrix, target);
+    }
+
+    void act_p_gate(const std::vector<double> &theta, UINT target)
+    {
+        int32_t targets[] = {static_cast<int32_t>(target)};
+        std::vector<int> matrix_indices(batch_size_);
+        std::vector<cuDoubleComplex> matrices(batch_size_ * 4);
+
+        for (int i = 0; i < batch_size_; i++) {
+            double cos = std::cos(theta[i] / 2), sin = std::sin(theta[i] / 2);
+
+            matrix_indices[i] = i;
+            matrices[i * 4 + 0] = make_cuDoubleComplex(1, 0);
+            matrices[i * 4 + 1] = make_cuDoubleComplex(0, 0);
+            matrices[i * 4 + 2] = make_cuDoubleComplex(0, 0);
+            matrices[i * 4 + 3] = make_cuDoubleComplex(cos, sin);
+        }
+
+        HANDLE_ERROR(custatevecApplyMatrixBatched(
+            handle_, state_, CUDA_C_64F, n_, batch_size_, 1ULL << n_,
+            CUSTATEVEC_MATRIX_MAP_TYPE_MATRIX_INDEXED, matrix_indices.data(), matrices.data(),
+            CUDA_C_64F, CUSTATEVEC_MATRIX_LAYOUT_ROW, 0, batch_size_, targets, 1, nullptr, nullptr,
+            0, CUSTATEVEC_COMPUTE_64F, nullptr, 0));
     }
 
     void act_sx_gate(UINT target)
@@ -450,7 +529,24 @@ void State::act_rx_gate(const std::vector<double> &theta, UINT target)
 
 void State::act_ry_gate(double theta, UINT target) { impl_->act_ry_gate(theta, target); }
 
+void State::act_ry_gate(const std::vector<double> &theta, UINT target)
+{
+    impl_->act_ry_gate(theta, target);
+}
+
 void State::act_rz_gate(double theta, UINT target) { impl_->act_rz_gate(theta, target); }
+
+void State::act_rz_gate(const std::vector<double> &theta, UINT target)
+{
+    impl_->act_rz_gate(theta, target);
+}
+
+void State::act_p_gate(double theta, UINT target) { impl_->act_p_gate(theta, target); }
+
+void State::act_p_gate(const std::vector<double> &theta, UINT target)
+{
+    impl_->act_p_gate(theta, target);
+}
 
 void State::act_sx_gate(UINT target) { impl_->act_sx_gate(target); }
 
