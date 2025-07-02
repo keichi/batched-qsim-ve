@@ -154,7 +154,7 @@ public:
             {make_cuDoubleComplex(0, 0), make_cuDoubleComplex(1, 0)},
             {make_cuDoubleComplex(1, 0), make_cuDoubleComplex(0, 0)}};
 
-        act_single_qubit_gate(matrix, target);
+        act_single_qubit_gate(target, matrix);
     }
 
     void act_y_gate(UINT target)
@@ -163,7 +163,7 @@ public:
             {make_cuDoubleComplex(0, 0), make_cuDoubleComplex(0, -1)},
             {make_cuDoubleComplex(0, -1), make_cuDoubleComplex(0, 0)}};
 
-        act_single_qubit_gate(matrix, target);
+        act_single_qubit_gate(target, matrix);
     }
 
     void act_z_gate(UINT target)
@@ -172,7 +172,7 @@ public:
             {make_cuDoubleComplex(1, 0), make_cuDoubleComplex(0, 0)},
             {make_cuDoubleComplex(0, 0), make_cuDoubleComplex(-1, 0)}};
 
-        act_single_qubit_gate(matrix, target);
+        act_single_qubit_gate(target, matrix);
     }
 
     void act_h_gate(UINT target)
@@ -182,7 +182,7 @@ public:
             {make_cuDoubleComplex(inv_sqrt2, 0), make_cuDoubleComplex(inv_sqrt2, 0)},
             {make_cuDoubleComplex(inv_sqrt2, 0), make_cuDoubleComplex(-inv_sqrt2, 0)}};
 
-        act_single_qubit_gate(matrix, target);
+        act_single_qubit_gate(target, matrix);
     }
 
     void act_rx_gate(UINT target, double theta)
@@ -192,7 +192,7 @@ public:
             {make_cuDoubleComplex(cos_half, 0), make_cuDoubleComplex(0, -sin_half)},
             {make_cuDoubleComplex(0, -sin_half), make_cuDoubleComplex(cos_half, 0)}};
 
-        act_single_qubit_gate(matrix, target);
+        act_single_qubit_gate(target, matrix);
     }
 
     void act_rx_gate(UINT target, const std::vector<double> &theta)
@@ -225,7 +225,7 @@ public:
             {make_cuDoubleComplex(cos_half, 0), make_cuDoubleComplex(-sin_half, 0)},
             {make_cuDoubleComplex(sin_half, 0), make_cuDoubleComplex(cos_half, 0)}};
 
-        act_single_qubit_gate(matrix, target);
+        act_single_qubit_gate(target, matrix);
     }
 
     void act_ry_gate(UINT target, const std::vector<double> &theta)
@@ -258,7 +258,7 @@ public:
             {make_cuDoubleComplex(cos_half, -sin_half), make_cuDoubleComplex(0, 0)},
             {make_cuDoubleComplex(0, 0), make_cuDoubleComplex(cos_half, sin_half)}};
 
-        act_single_qubit_gate(matrix, target);
+        act_single_qubit_gate(target, matrix);
     }
 
     void act_rz_gate(UINT target, const std::vector<double> &theta)
@@ -291,7 +291,7 @@ public:
             {make_cuDoubleComplex(1, 0), make_cuDoubleComplex(0, 0)},
             {make_cuDoubleComplex(0, 0), make_cuDoubleComplex(cos, sin)}};
 
-        act_single_qubit_gate(matrix, target);
+        act_single_qubit_gate(target, matrix);
     }
 
     void act_p_gate(UINT target, const std::vector<double> &theta)
@@ -323,7 +323,7 @@ public:
             {make_cuDoubleComplex(0.5, 0.5), make_cuDoubleComplex(0.5, -0.5)},
             {make_cuDoubleComplex(0.5, -0.5), make_cuDoubleComplex(0.5, 0.5)}};
 
-        act_single_qubit_gate(matrix, target);
+        act_single_qubit_gate(target, matrix);
     }
 
     void act_sy_gate(UINT target)
@@ -332,7 +332,7 @@ public:
             {make_cuDoubleComplex(0.5, 0.5), make_cuDoubleComplex(-0.5, -0.5)},
             {make_cuDoubleComplex(0.5, 0.5), make_cuDoubleComplex(0.5, 0.5)}};
 
-        act_single_qubit_gate(matrix, target);
+        act_single_qubit_gate(target, matrix);
     }
 
     void act_sw_gate(UINT target)
@@ -342,7 +342,7 @@ public:
             {make_cuDoubleComplex(inv_sqrt2, 0), make_cuDoubleComplex(-0.5, -0.5)},
             {make_cuDoubleComplex(0.5, -0.5), make_cuDoubleComplex(inv_sqrt2, 0)}};
 
-        act_single_qubit_gate(matrix, target);
+        act_single_qubit_gate(target, matrix);
     }
 
     void act_t_gate(UINT target)
@@ -352,7 +352,7 @@ public:
             {make_cuDoubleComplex(1, 0), make_cuDoubleComplex(0, 0)},
             {make_cuDoubleComplex(0, 0), make_cuDoubleComplex(inv_sqrt2, inv_sqrt2)}};
 
-        act_single_qubit_gate(matrix, target);
+        act_single_qubit_gate(target, matrix);
     }
 
     void act_cnot_gate(UINT control, UINT target)
@@ -368,7 +368,7 @@ public:
              make_cuDoubleComplex(0, 0)},
         };
 
-        act_two_qubit_gate(matrix, target, control);
+        act_two_qubit_gate(control, target, matrix);
     }
 
     void act_cx_gate(UINT control, UINT target)
@@ -384,7 +384,7 @@ public:
              make_cuDoubleComplex(0, 0)},
         };
 
-        act_two_qubit_gate(matrix, target, control);
+        act_two_qubit_gate(control, target, matrix);
     }
 
     void act_cz_gate(UINT control, UINT target)
@@ -400,7 +400,7 @@ public:
              make_cuDoubleComplex(-1, 0)},
         };
 
-        act_two_qubit_gate(matrix, target, control);
+        act_two_qubit_gate(control, target, matrix);
     }
 
     void act_iswaplike_gate(UINT control, UINT target, double theta)
@@ -416,7 +416,7 @@ public:
              make_cuDoubleComplex(1, 0)},
         };
 
-        act_two_qubit_gate(matrix, target, control);
+        act_two_qubit_gate(control, target, matrix);
     }
 
     void act_depolarizing_gate_1q(UINT target, double prob)
