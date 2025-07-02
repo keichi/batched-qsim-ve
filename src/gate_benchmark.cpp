@@ -57,13 +57,13 @@ int main(int argc, char *argv[])
 
     // Warmup run
     if (gate_name == "RX") {
-        state.act_rx_gate(dist(engine), target);
+        state.act_rx_gate(target, dist(engine));
     } else if (gate_name == "H") {
         state.act_h_gate(target);
     } else if (gate_name == "T") {
         state.act_t_gate(target);
     } else if (gate_name == "CNOT") {
-        state.act_cnot_gate(target, control);
+        state.act_cnot_gate(control, target);
     } else if (gate_name == "NOISE") {
         state.act_depolarizing_gate_1q(target, noise_rate);
     }
@@ -74,13 +74,13 @@ int main(int argc, char *argv[])
         for (int batch = 0; batch < n_samples; batch += batch_size) {
             for (int d = 0; d < depth; d++) {
                 if (gate_name == "RX") {
-                    state.act_rx_gate(dist(engine), target);
+                    state.act_rx_gate(target, dist(engine));
                 } else if (gate_name == "H") {
                     state.act_h_gate(target);
                 } else if (gate_name == "T") {
                     state.act_t_gate(target);
                 } else if (gate_name == "CNOT") {
-                    state.act_cnot_gate(target, control);
+                    state.act_cnot_gate(control, target);
                 } else if (gate_name == "NOISE") {
                     state.act_depolarizing_gate_1q(target, noise_rate);
                 }

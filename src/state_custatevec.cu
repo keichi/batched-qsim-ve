@@ -112,7 +112,7 @@ public:
                                      cudaMemcpyHostToDevice));
     }
 
-    void act_single_qubit_gate(cuDoubleComplex matrix[2][2], UINT target)
+    void act_single_qubit_gate(UINT target, cuDoubleComplex matrix[2][2])
     {
         int32_t targets[] = {static_cast<int32_t>(target)};
 
@@ -130,7 +130,7 @@ public:
                                          nullptr, nullptr, 0, CUSTATEVEC_COMPUTE_64F, nullptr, 0));
     }
 
-    void act_two_qubit_gate(cuDoubleComplex matrix[4][4], UINT target, UINT control)
+    void act_two_qubit_gate(UINT control, UINT target, cuDoubleComplex matrix[4][4])
     {
         int32_t targets[] = {static_cast<int32_t>(target), static_cast<int32_t>(control)};
 
@@ -185,7 +185,7 @@ public:
         act_single_qubit_gate(matrix, target);
     }
 
-    void act_rx_gate(double theta, UINT target)
+    void act_rx_gate(UINT target, double theta)
     {
         double cos_half = std::cos(theta / 2), sin_half = std::sin(theta / 2);
         cuDoubleComplex matrix[2][2] = {
@@ -195,7 +195,7 @@ public:
         act_single_qubit_gate(matrix, target);
     }
 
-    void act_rx_gate(const std::vector<double> &theta, UINT target)
+    void act_rx_gate(UINT target, const std::vector<double> &theta)
     {
         int32_t targets[] = {static_cast<int32_t>(target)};
         std::vector<int> matrix_indices(batch_size_);
@@ -218,7 +218,7 @@ public:
             0, CUSTATEVEC_COMPUTE_64F, nullptr, 0));
     }
 
-    void act_ry_gate(double theta, UINT target)
+    void act_ry_gate(UINT target, double theta)
     {
         double cos_half = std::cos(theta / 2), sin_half = std::sin(theta / 2);
         cuDoubleComplex matrix[2][2] = {
@@ -228,7 +228,7 @@ public:
         act_single_qubit_gate(matrix, target);
     }
 
-    void act_ry_gate(const std::vector<double> &theta, UINT target)
+    void act_ry_gate(UINT target, const std::vector<double> &theta)
     {
         int32_t targets[] = {static_cast<int32_t>(target)};
         std::vector<int> matrix_indices(batch_size_);
@@ -251,7 +251,7 @@ public:
             0, CUSTATEVEC_COMPUTE_64F, nullptr, 0));
     }
 
-    void act_rz_gate(double theta, UINT target)
+    void act_rz_gate(UINT target, double theta)
     {
         double cos_half = std::cos(theta / 2), sin_half = std::sin(theta / 2);
         cuDoubleComplex matrix[2][2] = {
@@ -261,7 +261,7 @@ public:
         act_single_qubit_gate(matrix, target);
     }
 
-    void act_rz_gate(const std::vector<double> &theta, UINT target)
+    void act_rz_gate(UINT target, const std::vector<double> &theta)
     {
         int32_t targets[] = {static_cast<int32_t>(target)};
         std::vector<int> matrix_indices(batch_size_);
@@ -284,7 +284,7 @@ public:
             0, CUSTATEVEC_COMPUTE_64F, nullptr, 0));
     }
 
-    void act_p_gate(double theta, UINT target)
+    void act_p_gate(UINT target, double theta)
     {
         double cos = std::cos(theta), sin = std::sin(theta);
         cuDoubleComplex matrix[2][2] = {
@@ -294,7 +294,7 @@ public:
         act_single_qubit_gate(matrix, target);
     }
 
-    void act_p_gate(const std::vector<double> &theta, UINT target)
+    void act_p_gate(UINT target, const std::vector<double> &theta)
     {
         int32_t targets[] = {static_cast<int32_t>(target)};
         std::vector<int> matrix_indices(batch_size_);
@@ -355,7 +355,7 @@ public:
         act_single_qubit_gate(matrix, target);
     }
 
-    void act_cnot_gate(UINT target, UINT control)
+    void act_cnot_gate(UINT control, UINT target)
     {
         static cuDoubleComplex matrix[4][4] = {
             {make_cuDoubleComplex(1, 0), make_cuDoubleComplex(0, 0), make_cuDoubleComplex(0, 0),
@@ -371,7 +371,7 @@ public:
         act_two_qubit_gate(matrix, target, control);
     }
 
-    void act_cx_gate(UINT target, UINT control)
+    void act_cx_gate(UINT control, UINT target)
     {
         static cuDoubleComplex matrix[4][4] = {
             {make_cuDoubleComplex(1, 0), make_cuDoubleComplex(0, 0), make_cuDoubleComplex(0, 0),
@@ -387,7 +387,7 @@ public:
         act_two_qubit_gate(matrix, target, control);
     }
 
-    void act_cz_gate(UINT target, UINT control)
+    void act_cz_gate(UINT control, UINT target)
     {
         static cuDoubleComplex matrix[4][4] = {
             {make_cuDoubleComplex(1, 0), make_cuDoubleComplex(0, 0), make_cuDoubleComplex(0, 0),
@@ -403,7 +403,7 @@ public:
         act_two_qubit_gate(matrix, target, control);
     }
 
-    void act_iswaplike_gate(double theta, UINT target, UINT control)
+    void act_iswaplike_gate(UINT control, UINT target, double theta)
     {
         static cuDoubleComplex matrix[4][4] = {
             {make_cuDoubleComplex(1, 0), make_cuDoubleComplex(0, 0), make_cuDoubleComplex(0, 0),
@@ -456,10 +456,10 @@ public:
             CUSTATEVEC_COMPUTE_64F, nullptr, 0));
     }
 
-    void act_depolarizing_gate_2q(UINT target, UINT control, double prob)
+    void act_depolarizing_gate_2q(UINT control, UINT target, double prob)
     {
-        act_depolarizing_gate_1q(target, 1.0 - std::sqrt(1.0 - prob));
         act_depolarizing_gate_1q(control, 1.0 - std::sqrt(1.0 - prob));
+        act_depolarizing_gate_1q(target, 1.0 - std::sqrt(1.0 - prob));
     }
 
     std::vector<std::complex<double>> observe(const Observable &obs) const
@@ -520,32 +520,32 @@ void State::act_z_gate(UINT target) { impl_->act_z_gate(target); }
 
 void State::act_h_gate(UINT target) { impl_->act_h_gate(target); }
 
-void State::act_rx_gate(double theta, UINT target) { impl_->act_rx_gate(theta, target); }
+void State::act_rx_gate(UINT target, double theta) { impl_->act_rx_gate(target, theta); }
 
-void State::act_rx_gate(const std::vector<double> &theta, UINT target)
+void State::act_rx_gate(UINT target, const std::vector<double> &theta)
 {
-    impl_->act_rx_gate(theta, target);
+    impl_->act_rx_gate(target, theta);
 }
 
-void State::act_ry_gate(double theta, UINT target) { impl_->act_ry_gate(theta, target); }
+void State::act_ry_gate(UINT target, double theta) { impl_->act_ry_gate(target, theta); }
 
-void State::act_ry_gate(const std::vector<double> &theta, UINT target)
+void State::act_ry_gate(UINT target, const std::vector<double> &theta)
 {
-    impl_->act_ry_gate(theta, target);
+    impl_->act_ry_gate(target, theta);
 }
 
-void State::act_rz_gate(double theta, UINT target) { impl_->act_rz_gate(theta, target); }
+void State::act_rz_gate(UINT target, double theta) { impl_->act_rz_gate(target, theta); }
 
-void State::act_rz_gate(const std::vector<double> &theta, UINT target)
+void State::act_rz_gate(UINT target, const std::vector<double> &theta)
 {
-    impl_->act_rz_gate(theta, target);
+    impl_->act_rz_gate(target, theta);
 }
 
-void State::act_p_gate(double theta, UINT target) { impl_->act_p_gate(theta, target); }
+void State::act_p_gate(UINT target, double theta) { impl_->act_p_gate(target, theta); }
 
-void State::act_p_gate(const std::vector<double> &theta, UINT target)
+void State::act_p_gate(UINT target, const std::vector<double> &theta)
 {
-    impl_->act_p_gate(theta, target);
+    impl_->act_p_gate(target, theta);
 }
 
 void State::act_sx_gate(UINT target) { impl_->act_sx_gate(target); }
@@ -556,26 +556,26 @@ void State::act_sw_gate(UINT target) { impl_->act_sw_gate(target); }
 
 void State::act_t_gate(UINT target) { impl_->act_t_gate(target); }
 
-void State::act_cnot_gate(UINT target, UINT control) { impl_->act_cnot_gate(target, control); }
+void State::act_cnot_gate(UINT control, UINT target) { impl_->act_cnot_gate(control, target); }
 
-void State::act_iswaplike_gate(double theta, UINT target, UINT control)
+void State::act_iswaplike_gate(UINT control, UINT target, double theta)
 {
 
-    impl_->act_iswaplike_gate(theta, target, control);
+    impl_->act_iswaplike_gate(control, target, theta);
 }
 
-void State::act_cx_gate(UINT target, UINT control) { impl_->act_cx_gate(target, control); }
+void State::act_cx_gate(UINT control, UINT target) { impl_->act_cx_gate(control, target); }
 
-void State::act_cz_gate(UINT target, UINT control) { impl_->act_cz_gate(target, control); }
+void State::act_cz_gate(UINT control, UINT target) { impl_->act_cz_gate(control, target); }
 
 void State::act_depolarizing_gate_1q(UINT target, double prob)
 {
     impl_->act_depolarizing_gate_1q(target, prob);
 }
 
-void State::act_depolarizing_gate_2q(UINT target, UINT control, double prob)
+void State::act_depolarizing_gate_2q(UINT control, UINT target, double prob)
 {
-    impl_->act_depolarizing_gate_2q(target, control, prob);
+    impl_->act_depolarizing_gate_2q(control, target, prob);
 }
 
 std::vector<std::complex<double>> State::observe(const Observable &obs) const

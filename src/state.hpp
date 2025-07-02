@@ -47,21 +47,21 @@ public:
 
     void act_h_gate(UINT target);
 
-    void act_rx_gate(double theta, UINT target);
+    void act_rx_gate(UINT target, double theta);
 
-    void act_rx_gate(const std::vector<double> &theta, UINT target);
+    void act_rx_gate(UINT target, const std::vector<double> &theta);
 
-    void act_ry_gate(double theta, UINT target);
+    void act_ry_gate(UINT target, double theta);
 
-    void act_ry_gate(const std::vector<double> &theta, UINT target);
+    void act_ry_gate(UINT target, const std::vector<double> &theta);
 
-    void act_rz_gate(double theta, UINT target);
+    void act_rz_gate(UINT target, double theta);
 
-    void act_rz_gate(const std::vector<double> &theta, UINT target);
+    void act_rz_gate(UINT target, const std::vector<double> &theta);
 
-    void act_p_gate(double theta, UINT target);
+    void act_p_gate(UINT target, double theta);
 
-    void act_p_gate(const std::vector<double> &theta, UINT target);
+    void act_p_gate(UINT target, const std::vector<double> &theta);
 
     void act_sx_gate(UINT target);
 
@@ -69,19 +69,19 @@ public:
 
     void act_sw_gate(UINT target);
 
-    void act_cnot_gate(UINT target, UINT control);
+    void act_cnot_gate(UINT control, UINT target);
 
     void act_t_gate(UINT target);
 
-    void act_iswaplike_gate(double theta, UINT target, UINT control);
+    void act_iswaplike_gate(UINT control, UINT target, double theta);
 
-    void act_cx_gate(UINT target, UINT control);
+    void act_cx_gate(UINT control, UINT target);
 
-    void act_cz_gate(UINT target, UINT control);
+    void act_cz_gate(UINT control, UINT target);
 
     void act_depolarizing_gate_1q(UINT target, double prob);
 
-    void act_depolarizing_gate_2q(UINT target, UINT control, double prob);
+    void act_depolarizing_gate_2q(UINT control, UINT target, double prob);
 
     std::vector<std::complex<double>> observe(const Observable &obs) const;
 

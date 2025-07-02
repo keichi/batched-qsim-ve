@@ -22,10 +22,10 @@ void act_2q_gate(veqsim::State &state, UINT width, UINT height, UINT x1, UINT y1
     UINT target = grid_to_id(x1, y1, width);
     UINT control = grid_to_id(x2, y2, width);
 
-    state.act_iswaplike_gate(theta, target, control);
+    state.act_iswaplike_gate(control, target, theta);
 
     if (noise_rate > 0) {
-        state.act_depolarizing_gate_2q(target, control, noise_rate);
+        state.act_depolarizing_gate_2q(control, target, noise_rate);
     }
 }
 

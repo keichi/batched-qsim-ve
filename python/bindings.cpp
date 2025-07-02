@@ -45,38 +45,38 @@ NB_MODULE(_veqsim, m)
         .def("act_z_gate", &vq::State::act_z_gate, "target"_a, "Apply a Z gate")
         .def("act_h_gate", &vq::State::act_h_gate, "target"_a, "Apply an H gate")
         .def("act_t_gate", &vq::State::act_t_gate, "target"_a, "Apply a T gate")
-        .def("act_rx_gate", nb::overload_cast<double, UINT>(&vq::State::act_rx_gate),
-             "theta"_a, "target"_a, "Act an RX gate with the same angle")
+        .def("act_rx_gate", nb::overload_cast<UINT, double>(&vq::State::act_rx_gate),
+             "target"_a, "theta"_a, "Act an RX gate with the same angle")
         .def("act_rx_gate",
-             nb::overload_cast<const std::vector<double> &, UINT>(&vq::State::act_rx_gate),
-             "theta"_a, "target"_a, "Act an RX gate with different angles")
-        .def("act_ry_gate", nb::overload_cast<double, UINT>(&vq::State::act_ry_gate),
-             "theta"_a, "target"_a, "Apply an RY gate")
+             nb::overload_cast<UINT, const std::vector<double> &>(&vq::State::act_rx_gate),
+             "target"_a, "theta"_a, "Act an RX gate with different angles")
+        .def("act_ry_gate", nb::overload_cast<UINT, double>(&vq::State::act_ry_gate),
+             "target"_a, "theta"_a, "Apply an RY gate")
         .def("act_ry_gate",
-             nb::overload_cast<const std::vector<double> &, UINT>(&vq::State::act_ry_gate),
-             "theta"_a, "target"_a, "Act an RY gate with different angles")
-        .def("act_rz_gate", nb::overload_cast<double, UINT>(&vq::State::act_rz_gate),
-             "theta"_a, "target"_a, "Apply an RZ gate")
+             nb::overload_cast<UINT, const std::vector<double> &>(&vq::State::act_ry_gate),
+             "target"_a, "theta"_a, "Act an RY gate with different angles")
+        .def("act_rz_gate", nb::overload_cast<UINT, double>(&vq::State::act_rz_gate),
+             "target"_a, "theta"_a, "Apply an RZ gate")
         .def("act_rz_gate",
-             nb::overload_cast<const std::vector<double> &, UINT>(&vq::State::act_rz_gate),
-             "theta"_a, "target"_a, "Act an RZ gate with different angles")
-        .def("act_p_gate", nb::overload_cast<double, UINT>(&vq::State::act_p_gate),
-             "theta"_a, "target"_a, "Apply a P gate")
+             nb::overload_cast<UINT, const std::vector<double> &>(&vq::State::act_rz_gate),
+             "target"_a, "theta"_a, "Act an RZ gate with different angles")
+        .def("act_p_gate", nb::overload_cast<UINT, double>(&vq::State::act_p_gate),
+             "target"_a, "theta"_a, "Apply a P gate")
         .def("act_p_gate",
-             nb::overload_cast<const std::vector<double> &, UINT>(&vq::State::act_p_gate),
-             "theta"_a, "target"_a, "Act a P gate with different angles")
+             nb::overload_cast<UINT, const std::vector<double> &>(&vq::State::act_p_gate),
+             "target"_a, "theta"_a, "Act a P gate with different angles")
         .def("act_sx_gate", &vq::State::act_sx_gate,  "target"_a, "Apply an SX gate")
         .def("act_sy_gate", &vq::State::act_sy_gate, "target"_a, "Apply an SY gate")
         .def("act_sw_gate", &vq::State::act_sw_gate, "target"_a, "Apply an SW gate")
-        .def("act_cnot_gate", &vq::State::act_cnot_gate, "target"_a, "control"_a, "Apply a CNOT gate")
-        .def("act_cx_gate", &vq::State::act_cx_gate, "target"_a, "control"_a, "Apply a CX gate")
-        .def("act_cz_gate", &vq::State::act_cz_gate, "target"_a, "control"_a, "Apply a CZ gate")
-        .def("act_iswaplike_gate", &vq::State::act_iswaplike_gate, "theta"_a, "target"_a,
-              "control"_a, "Apply an iSWAP-like gate")
+        .def("act_cnot_gate", &vq::State::act_cnot_gate, "control"_a, "target"_a, "Apply a CNOT gate")
+        .def("act_cx_gate", &vq::State::act_cx_gate, "control"_a, "target"_a, "Apply a CX gate")
+        .def("act_cz_gate", &vq::State::act_cz_gate, "control"_a, "target"_a, "Apply a CZ gate")
+        .def("act_iswaplike_gate", &vq::State::act_iswaplike_gate, "control"_a, "target"_a,
+              "theta"_a, "Apply an iSWAP-like gate")
         .def("act_depolarizing_gate_1q", &vq::State::act_depolarizing_gate_1q,
              "target"_a, "probability"_a, "Apply an one-qubit depolarizing noise gate")
         .def("act_depolarizing_gate_2q", &vq::State::act_depolarizing_gate_2q,
-             "target"_a, "control"_a, "probability"_a, "Apply a two-qubit depolarizing noise gate")
+             "control"_a, "target"_a, "probability"_a, "Apply a two-qubit depolarizing noise gate")
         .def("observe", &vq::State::observe, "observable"_a, "Get expectation of a given observable")
         .def("synchronize", &vq::State::synchronize, "Wait for completion of computation");
 
