@@ -103,6 +103,20 @@ public:
         return re * re + im * im;
     }
 
+    std::vector<double> get_probability_batched(UINT i) const
+    {
+        std::vector<double> probs(batch_size_);
+
+        for (UINT sample = 0; sample < batch_size_; sample++) {
+            double re = state_re_[sample + i * batch_size_];
+            double im = state_im_[sample + i * batch_size_];
+
+            probs[sample] = re * re + im * im;
+        }
+
+        return probs;
+    }
+
     UINT dim() const { return 1ULL << n_; }
 
     UINT batch_size() const { return batch_size_; }
@@ -812,6 +826,11 @@ double State::get_probability(UINT basis) const { return impl_->get_probability(
 double State::get_probability(UINT sample, UINT basis) const
 {
     return impl_->get_probability(sample, basis);
+}
+
+std::vector<double> State::get_probability_batched(UINT basis) const
+{
+    return impl_->get_probability_batched(basis);
 }
 
 UINT State::dim() const { return impl_->dim(); }

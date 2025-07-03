@@ -35,6 +35,8 @@ public:
 
     double get_probability(UINT sample, UINT basis) const;
 
+    std::vector<double> get_probability_batched(UINT basis) const;
+
     UINT dim() const;
 
     UINT batch_size() const;

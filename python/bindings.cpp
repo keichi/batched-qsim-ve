@@ -27,7 +27,7 @@ NB_MODULE(_veqsim, m)
              "Add a Pauli operator to the observable");
 
     nb::class_<vq::State>(m, "State", "A batched state vector")
-        .def(nb::init<UINT, UINT>(), "num_qubits"_a, "num_samples"_a, "Create state vector")
+        .def(nb::init<UINT, UINT>(), "num_qubits"_a, "num_samples"_a, "Create a state vector")
         .def_prop_ro("dim", &vq::State::dim, "Dimension")
         .def_prop_ro("batch_size", &vq::State::batch_size, "Batch size")
         .def("get_vector", &vq::State::get_vector, "sample"_a, "Get a single state vector")
@@ -40,7 +40,9 @@ NB_MODULE(_veqsim, m)
         .def("get_probability", nb::overload_cast<UINT>(&vq::State::get_probability, nb::const_),
              "basis"_a, "Get the probability of a basis to be observed")
         .def("get_probability", nb::overload_cast<UINT, UINT>(&vq::State::get_probability, nb::const_),
-             "sample"_a, "basis"_a, "Get the probability of a basis to be observed")
+             "sample"_a, "basis"_a, "Get the probability of a basis to be observed for a single state vector")
+        .def("get_probability_batched", &vq::State::get_probability_batched,
+             "basis"_a, "Get the probability of a basis to be observed for all state vectors")
         .def("set_zero_state", &vq::State::set_zero_state, "Initialize to |0..0>")
         .def("act_x_gate", &vq::State::act_x_gate, "target"_a, "Apply an X gate")
         .def("act_y_gate", &vq::State::act_y_gate, "target"_a, "Apply a Y gate")

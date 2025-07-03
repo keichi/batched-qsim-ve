@@ -101,6 +101,11 @@ public:
         throw std::runtime_error("Not implemented");
     }
 
+    std::vector<double> get_probability_batched(UINT i) const
+    {
+        throw std::runtime_error("Not implemented");
+    }
+
     UINT dim() const { return 1ULL << n_; }
 
     UINT batch_size() const { return batch_size_; }
@@ -514,6 +519,11 @@ double State::get_probability(UINT basis) const { return impl_->get_probability(
 double State::get_probability(UINT sample, UINT basis) const
 {
     return impl_->get_probability(sample, basis);
+}
+
+std::vector<double> State::get_probability_batched(UINT basis) const
+{
+    return impl_->get_probability_batched(basis);
 }
 
 UINT State::dim() const { return impl_->dim(); }
