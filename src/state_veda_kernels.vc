@@ -42,8 +42,8 @@ void get_vector(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr, VEDAdevi
     }
 }
 
-void get_probability(double *prob, VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr, UINT i,
-                     UINT batch_size, UINT n)
+void get_probability_average(double *prob, VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr,
+                             UINT i, UINT batch_size, UINT n)
 {
     const double *state_re = NULL, *state_im = NULL;
     vedaMemPtr((void **)&state_re, state_re_ptr);
@@ -59,6 +59,19 @@ void get_probability(double *prob, VEDAdeviceptr state_re_ptr, VEDAdeviceptr sta
     }
 
     *prob /= batch_size;
+}
+
+void get_probability_single(double *prob, VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr,
+                            UINT sample, UINT i, UINT batch_size, UINT n)
+{
+    const double *state_re = NULL, *state_im = NULL;
+    vedaMemPtr((void **)&state_re, state_re_ptr);
+    vedaMemPtr((void **)&state_im, state_im_ptr);
+
+    double re = state_re[sample + i * batch_size];
+    double im = state_im[sample + i * batch_size];
+
+    *prob += re * re + im * im;
 }
 
 void set_zero_state(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr, UINT batch_size, UINT n)

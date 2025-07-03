@@ -39,9 +39,7 @@ public:
     {
     }
 
-    ~Impl()
-    {
-    }
+    ~Impl() {}
 
     static void initialize()
     {
@@ -95,6 +93,14 @@ public:
         }
 
         return prob / batch_size_;
+    }
+
+    double get_probability(UINT sample, UINT i) const
+    {
+        double re = state_re_[sample + i * batch_size_];
+        double im = state_im_[sample + i * batch_size_];
+
+        return re * re + im * im;
     }
 
     UINT dim() const { return 1ULL << n_; }
@@ -154,8 +160,8 @@ public:
         }
     }
 
-    void act_two_qubit_gate(UINT control, UINT target,
-                            double matrix_re[4][4], double matrix_im[4][4])
+    void act_two_qubit_gate(UINT control, UINT target, double matrix_re[4][4],
+                            double matrix_im[4][4])
     {
         ITYPE target_mask = 1ULL << target;
         ITYPE control_mask = 1ULL << control;
@@ -792,16 +798,21 @@ std::vector<std::complex<double>> State::get_vector(UINT sample) const
     return impl_->get_vector(sample);
 }
 
-std::complex<double> State::amplitude(UINT sample, UINT i) const
+std::complex<double> State::amplitude(UINT sample, UINT basis) const
 {
-    return impl_->amplitude(sample, i);
+    return impl_->amplitude(sample, basis);
 }
 
-double State::re(UINT sample, UINT i) const { return impl_->re(sample, i); }
+double State::re(UINT sample, UINT basis) const { return impl_->re(sample, basis); }
 
-double State::im(UINT sample, UINT i) const { return impl_->im(sample, i); }
+double State::im(UINT sample, UINT basis) const { return impl_->im(sample, basis); }
 
-double State::get_probability(UINT i) const { return impl_->get_probability(i); }
+double State::get_probability(UINT basis) const { return impl_->get_probability(basis); }
+
+double State::get_probability(UINT sample, UINT basis) const
+{
+    return impl_->get_probability(sample, basis);
+}
 
 UINT State::dim() const { return impl_->dim(); }
 
@@ -885,4 +896,4 @@ void initialize() { State::initialize(); }
 
 void finalize() { State::finalize(); }
 
-}
+} // namespace veqsim

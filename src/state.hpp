@@ -25,13 +25,15 @@ public:
 
     std::vector<std::complex<double>> get_vector(UINT sample) const;
 
-    std::complex<double> amplitude(UINT sample, UINT i) const;
+    std::complex<double> amplitude(UINT sample, UINT basis) const;
 
-    double re(UINT sample, UINT i) const;
+    double re(UINT sample, UINT basis) const;
 
-    double im(UINT sample, UINT i) const;
+    double im(UINT sample, UINT basis) const;
 
-    double get_probability(UINT i) const;
+    double get_probability(UINT basis) const;
+
+    double get_probability(UINT sample, UINT basis) const;
 
     UINT dim() const;
 

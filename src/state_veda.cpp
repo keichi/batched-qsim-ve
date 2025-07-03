@@ -54,7 +54,8 @@ public:
         VEDA(vedaModuleLoad(&mod_, "libveqsim-device.vso"));
 
         VEDA(vedaModuleGetFunction(&get_vector_, mod_, "get_vector"));
-        VEDA(vedaModuleGetFunction(&get_probability_, mod_, "get_probability"));
+        VEDA(vedaModuleGetFunction(&get_probability_average_, mod_, "get_probability_average"));
+        VEDA(vedaModuleGetFunction(&get_probability_single_, mod_, "get_probability_single"));
         VEDA(vedaModuleGetFunction(&set_zero_state_, mod_, "set_zero_state"));
         VEDA(vedaModuleGetFunction(&act_single_qubit_gate_, mod_, "act_single_qubit_gate"));
         VEDA(vedaModuleGetFunction(&act_two_qubit_gate_, mod_, "act_two_qubit_gate"));
@@ -149,7 +150,27 @@ public:
         VEDA(vedaArgsSetU64(args, 3, i));
         VEDA(vedaArgsSetU64(args, 4, batch_size_));
         VEDA(vedaArgsSetU64(args, 5, n_));
-        VEDA(vedaLaunchKernel(get_probability_, 0, args));
+        VEDA(vedaLaunchKernel(get_probability_average_, 0, args));
+        VEDA(vedaArgsDestroy(args));
+        VEDA(vedaCtxSynchronize());
+
+        return prob;
+    }
+
+    double get_probability(UINT sample, UINT i)
+    {
+        double prob = 0.0;
+
+        VEDAargs args;
+        VEDA(vedaArgsCreate(&args));
+        VEDA(vedaArgsSetStack(args, 0, &prob, VEDA_ARGS_INTENT_OUT, sizeof(double)));
+        VEDA(vedaArgsSetVPtr(args, 1, state_re_ptr_));
+        VEDA(vedaArgsSetVPtr(args, 2, state_im_ptr_));
+        VEDA(vedaArgsSetU64(args, 3, sample));
+        VEDA(vedaArgsSetU64(args, 4, i));
+        VEDA(vedaArgsSetU64(args, 5, batch_size_));
+        VEDA(vedaArgsSetU64(args, 6, n_));
+        VEDA(vedaLaunchKernel(get_probability_single_, 0, args));
         VEDA(vedaArgsDestroy(args));
         VEDA(vedaCtxSynchronize());
 
@@ -561,7 +582,8 @@ private:
     static VEDAmodule mod_;
 
     static VEDAfunction get_vector_;
-    static VEDAfunction get_probability_;
+    static VEDAfunction get_probability_average_;
+    static VEDAfunction get_probability_single_;
     static VEDAfunction set_zero_state_;
     static VEDAfunction act_single_qubit_gate_;
     static VEDAfunction act_two_qubit_gate_;
@@ -583,7 +605,8 @@ VEDAcontext State::Impl::context_;
 VEDAmodule State::Impl::mod_;
 
 VEDAfunction State::Impl::get_vector_;
-VEDAfunction State::Impl::get_probability_;
+VEDAfunction State::Impl::get_probability_average_;
+VEDAfunction State::Impl::get_probability_single_;
 VEDAfunction State::Impl::set_zero_state_;
 VEDAfunction State::Impl::act_single_qubit_gate_;
 VEDAfunction State::Impl::act_two_qubit_gate_;
@@ -613,16 +636,21 @@ std::vector<std::complex<double>> State::get_vector(UINT sample) const
     return impl_->get_vector(sample);
 }
 
-std::complex<double> State::amplitude(UINT sample, UINT i) const
+std::complex<double> State::amplitude(UINT sample, UINT basis) const
 {
-    return impl_->amplitude(sample, i);
+    return impl_->amplitude(sample, basis);
 }
 
-double State::re(UINT sample, UINT i) const { return impl_->re(sample, i); }
+double State::re(UINT sample, UINT basis) const { return impl_->re(sample, basis); }
 
-double State::im(UINT sample, UINT i) const { return impl_->im(sample, i); }
+double State::im(UINT sample, UINT basis) const { return impl_->im(sample, basis); }
 
-double State::get_probability(UINT i) const { return impl_->get_probability(i); }
+double State::get_probability(UINT basis) const { return impl_->get_probability(basis); }
+
+double State::get_probability(UINT sample, UINT basis) const
+{
+    return impl_->get_probability(sample, basis);
+}
 
 UINT State::dim() const { return impl_->dim(); }
 

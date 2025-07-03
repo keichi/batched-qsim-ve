@@ -96,6 +96,11 @@ public:
         throw std::runtime_error("Not implemented");
     }
 
+    double get_probability(UINT sample, UINT i)
+    {
+        throw std::runtime_error("Not implemented");
+    }
+
     UINT dim() const { return 1ULL << n_; }
 
     UINT batch_size() const { return batch_size_; }
@@ -495,16 +500,21 @@ std::vector<std::complex<double>> State::get_vector(UINT sample) const
     return impl_->get_vector(sample);
 }
 
-std::complex<double> State::amplitude(UINT sample, UINT i) const
+std::complex<double> State::amplitude(UINT sample, UINT basis) const
 {
-    return impl_->amplitude(sample, i);
+    return impl_->amplitude(sample, basis);
 }
 
-double State::re(UINT sample, UINT i) const { return impl_->re(sample, i); }
+double State::re(UINT sample, UINT basis) const { return impl_->re(sample, basis); }
 
-double State::im(UINT sample, UINT i) const { return impl_->im(sample, i); }
+double State::im(UINT sample, UINT basis) const { return impl_->im(sample, basis); }
 
-double State::get_probability(UINT i) const { return impl_->get_probability(i); }
+double State::get_probability(UINT basis) const { return impl_->get_probability(basis); }
+
+double State::get_probability(UINT sample, UINT basis) const
+{
+    return impl_->get_probability(sample, basis);
+}
 
 UINT State::dim() const { return impl_->dim(); }
 
