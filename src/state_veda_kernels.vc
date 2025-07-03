@@ -88,7 +88,7 @@ void get_probability_batched(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_
         double re = state_re[sample + i * batch_size];
         double im = state_im[sample + i * batch_size];
 
-        prob = re * re + im * im;
+        prob[sample] = re * re + im * im;
     }
 }
 
