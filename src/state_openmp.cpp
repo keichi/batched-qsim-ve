@@ -528,42 +528,6 @@ public:
         act_two_qubit_gate(control, target, matrix_re, matrix_im);
     }
 
-    void act_cnot_gate_opt(UINT control, UINT target)
-    {
-        ITYPE target_mask = 1ULL << target;
-        ITYPE control_mask = 1ULL << control;
-
-        UINT min_qubit_index = std::min(target, control);
-        UINT max_qubit_index = std::max(target, control);
-        ITYPE min_qubit_mask = 1ULL << min_qubit_index;
-        ITYPE max_qubit_mask = 1ULL << (max_qubit_index - 1);
-        ITYPE lo_mask = min_qubit_mask - 1;
-        ITYPE mid_mask = (max_qubit_mask - 1) ^ lo_mask;
-        ITYPE hi_mask = ~(max_qubit_mask - 1);
-
-#pragma omp parallel for
-        for (ITYPE i = 0; i < 1ULL << (n_ - 2); i++) {
-            ITYPE i00 = ((i & hi_mask) << 2) | ((i & mid_mask) << 1) | ((i & lo_mask));
-            ITYPE i01 = i00 | target_mask;
-            ITYPE i10 = i00 | control_mask;
-            ITYPE i11 = i00 | control_mask | target_mask;
-
-#pragma omp simd
-            for (int sample = 0; sample < batch_size_; sample++) {
-                double tmp10_re = state_re_[sample + i10 * batch_size_];
-                double tmp10_im = state_im_[sample + i10 * batch_size_];
-                double tmp11_re = state_re_[sample + i11 * batch_size_];
-                double tmp11_im = state_im_[sample + i11 * batch_size_];
-
-                state_re_[sample + i10 * batch_size_] = tmp11_re;
-                state_im_[sample + i10 * batch_size_] = tmp11_im;
-
-                state_re_[sample + i11 * batch_size_] = tmp10_re;
-                state_im_[sample + i11 * batch_size_] = tmp10_im;
-            }
-        }
-    }
-
     void act_cz_gate(UINT control, UINT target)
     {
         static double matrix_re[4][4] = {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, -1}};
@@ -611,6 +575,7 @@ public:
 
                 state_re_[sample + i10 * batch_size_] = tmp11_re;
                 state_im_[sample + i10 * batch_size_] = tmp11_im;
+
                 state_re_[sample + i11 * batch_size_] = tmp10_re;
                 state_im_[sample + i11 * batch_size_] = tmp10_im;
             }
@@ -883,7 +848,7 @@ void State::act_sw_gate(UINT target) { impl_->act_sw_gate(target); }
 
 void State::act_t_gate(UINT target) { impl_->act_t_gate(target); }
 
-void State::act_cnot_gate(UINT control, UINT target) { impl_->act_cnot_gate_opt(control, target); }
+void State::act_cnot_gate(UINT control, UINT target) { impl_->act_cx_gate_opt(control, target); }
 
 void State::act_iswaplike_gate(UINT control, UINT target, double theta)
 {

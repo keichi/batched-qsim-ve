@@ -67,7 +67,6 @@ public:
         VEDA(vedaModuleGetFunction(&act_x_gate_opt_, mod_, "act_x_gate_opt"));
         VEDA(vedaModuleGetFunction(&act_y_gate_opt_, mod_, "act_y_gate_opt"));
         VEDA(vedaModuleGetFunction(&act_z_gate_opt_, mod_, "act_z_gate_opt"));
-        VEDA(vedaModuleGetFunction(&act_cnot_gate_opt_, mod_, "act_cnot_gate_opt"));
         VEDA(vedaModuleGetFunction(&act_cx_gate_opt_, mod_, "act_cx_gate_opt"));
         VEDA(vedaModuleGetFunction(&act_cz_gate_opt_, mod_, "act_cz_gate_opt"));
         VEDA(vedaModuleGetFunction(&act_depolarizing_gate_1q_, mod_, "act_depolarizing_gate_1q"));
@@ -446,26 +445,12 @@ public:
         act_single_qubit_gate(target, matrix_re, matrix_im);
     }
 
-    void act_cnot_gate(UINT control, UINT target)
+    void act_cx_gate(UINT control, UINT target)
     {
         static double matrix_re[4][4] = {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 0, 1}, {0, 0, 1, 0}};
         static double matrix_im[4][4] = {{0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}};
 
         act_two_qubit_gate(control, target, matrix_re, matrix_im);
-    }
-
-    void act_cnot_gate_opt(UINT control, UINT target)
-    {
-        VEDAargs args;
-        VEDA(vedaArgsCreate(&args));
-        VEDA(vedaArgsSetVPtr(args, 0, state_re_ptr_));
-        VEDA(vedaArgsSetVPtr(args, 1, state_im_ptr_));
-        VEDA(vedaArgsSetU64(args, 2, target));
-        VEDA(vedaArgsSetU64(args, 3, control));
-        VEDA(vedaArgsSetU64(args, 4, batch_size_));
-        VEDA(vedaArgsSetU64(args, 5, n_));
-        VEDA(vedaLaunchKernel(act_cnot_gate_opt_, 0, args));
-        VEDA(vedaArgsDestroy(args));
     }
 
     void act_cz_gate(UINT target, UINT control)
@@ -621,7 +606,6 @@ private:
     static VEDAfunction act_x_gate_opt_;
     static VEDAfunction act_y_gate_opt_;
     static VEDAfunction act_z_gate_opt_;
-    static VEDAfunction act_cnot_gate_opt_;
     static VEDAfunction act_cx_gate_opt_;
     static VEDAfunction act_cz_gate_opt_;
     static VEDAfunction act_depolarizing_gate_1q_;
@@ -645,7 +629,6 @@ VEDAfunction State::Impl::act_p_gate_;
 VEDAfunction State::Impl::act_x_gate_opt_;
 VEDAfunction State::Impl::act_y_gate_opt_;
 VEDAfunction State::Impl::act_z_gate_opt_;
-VEDAfunction State::Impl::act_cnot_gate_opt_;
 VEDAfunction State::Impl::act_cx_gate_opt_;
 VEDAfunction State::Impl::act_cz_gate_opt_;
 VEDAfunction State::Impl::act_depolarizing_gate_1q_;
@@ -735,7 +718,7 @@ void State::act_sw_gate(UINT target) { impl_->act_sw_gate(target); }
 
 void State::act_t_gate(UINT target) { impl_->act_t_gate(target); }
 
-void State::act_cnot_gate(UINT control, UINT target) { impl_->act_cnot_gate_opt(control, target); }
+void State::act_cnot_gate(UINT control, UINT target) { impl_->act_cx_gate_opt(control, target); }
 
 void State::act_iswaplike_gate(UINT control, UINT target, double theta)
 {

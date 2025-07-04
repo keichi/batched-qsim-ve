@@ -469,46 +469,6 @@ void act_z_gate_opt(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr, UINT
     }
 }
 
-void act_cnot_gate_opt(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr, UINT target,
-                       UINT control, UINT batch_size, UINT n)
-{
-    double *state_re = NULL, *state_im = NULL;
-    vedaMemPtr((void **)&state_re, state_re_ptr);
-    vedaMemPtr((void **)&state_im, state_im_ptr);
-
-    ITYPE target_mask = 1ULL << target;
-    ITYPE control_mask = 1ULL << control;
-
-    UINT minqubit_index = fmin(target, control);
-    UINT max_qubit_index = fmax(target, control);
-    ITYPE minqubit_mask = 1ULL << minqubit_index;
-    ITYPE max_qubit_mask = 1ULL << (max_qubit_index - 1);
-    ITYPE lo_mask = minqubit_mask - 1;
-    ITYPE mid_mask = (max_qubit_mask - 1) ^ lo_mask;
-    ITYPE hi_mask = ~(max_qubit_mask - 1);
-
-#pragma omp parallel for
-    for (ITYPE i = 0; i < 1ULL << (n - 2); i++) {
-        ITYPE i00 = ((i & hi_mask) << 2) | ((i & mid_mask) << 1) | ((i & lo_mask));
-        ITYPE i10 = i00 | control_mask;
-        ITYPE i11 = i00 | control_mask | target_mask;
-
-#pragma omp simd
-        for (int sample = 0; sample < batch_size; sample++) {
-            double tmp10_re = state_re[sample + i10 * batch_size];
-            double tmp10_im = state_im[sample + i10 * batch_size];
-            double tmp11_re = state_re[sample + i11 * batch_size];
-            double tmp11_im = state_im[sample + i11 * batch_size];
-
-            state_re[sample + i10 * batch_size] = tmp11_re;
-            state_im[sample + i10 * batch_size] = tmp11_im;
-
-            state_re[sample + i11 * batch_size] = tmp10_re;
-            state_im[sample + i11 * batch_size] = tmp10_im;
-        }
-    }
-}
-
 void act_cx_gate_opt(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr, UINT target,
                      UINT control, UINT batch_size, UINT n)
 {
@@ -542,6 +502,7 @@ void act_cx_gate_opt(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr, UIN
 
             state_re[sample + i10 * batch_size] = tmp11_re;
             state_im[sample + i10 * batch_size] = tmp11_im;
+
             state_re[sample + i11 * batch_size] = tmp10_re;
             state_im[sample + i11 * batch_size] = tmp10_im;
         }

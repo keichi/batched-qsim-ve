@@ -365,32 +365,16 @@ public:
         act_single_qubit_gate(target, matrix);
     }
 
-    void act_cnot_gate(UINT control, UINT target)
-    {
-        static cuDoubleComplex matrix[4][4] = {
-            {make_cuDoubleComplex(1, 0), make_cuDoubleComplex(0, 0), make_cuDoubleComplex(0, 0),
-             make_cuDoubleComplex(0, 0)},
-            {make_cuDoubleComplex(0, 0), make_cuDoubleComplex(1, 0), make_cuDoubleComplex(0, 0),
-             make_cuDoubleComplex(0, 0)},
-            {make_cuDoubleComplex(0, 0), make_cuDoubleComplex(0, 0), make_cuDoubleComplex(0, 0),
-             make_cuDoubleComplex(1, 0)},
-            {make_cuDoubleComplex(0, 0), make_cuDoubleComplex(0, 0), make_cuDoubleComplex(1, 0),
-             make_cuDoubleComplex(0, 0)},
-        };
-
-        act_two_qubit_gate(control, target, matrix);
-    }
-
     void act_cx_gate(UINT control, UINT target)
     {
         static cuDoubleComplex matrix[4][4] = {
             {make_cuDoubleComplex(1, 0), make_cuDoubleComplex(0, 0), make_cuDoubleComplex(0, 0),
              make_cuDoubleComplex(0, 0)},
+            {make_cuDoubleComplex(0, 0), make_cuDoubleComplex(1, 0), make_cuDoubleComplex(0, 0),
+             make_cuDoubleComplex(0, 0)},
             {make_cuDoubleComplex(0, 0), make_cuDoubleComplex(0, 0), make_cuDoubleComplex(0, 0),
              make_cuDoubleComplex(1, 0)},
             {make_cuDoubleComplex(0, 0), make_cuDoubleComplex(0, 0), make_cuDoubleComplex(1, 0),
-             make_cuDoubleComplex(0, 0)},
-            {make_cuDoubleComplex(0, 0), make_cuDoubleComplex(1, 0), make_cuDoubleComplex(0, 0),
              make_cuDoubleComplex(0, 0)},
         };
 
@@ -576,7 +560,7 @@ void State::act_sw_gate(UINT target) { impl_->act_sw_gate(target); }
 
 void State::act_t_gate(UINT target) { impl_->act_t_gate(target); }
 
-void State::act_cnot_gate(UINT control, UINT target) { impl_->act_cnot_gate(control, target); }
+void State::act_cnot_gate(UINT control, UINT target) { impl_->act_cx_gate(control, target); }
 
 void State::act_iswaplike_gate(UINT control, UINT target, double theta)
 {
