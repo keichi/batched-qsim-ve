@@ -41,20 +41,11 @@ public:
         HANDLE_CUDA_ERROR(cudaMalloc(&state_, batch_size * (1ULL << n) * sizeof(cuDoubleComplex)));
     }
 
-    ~Impl()
-    {
-        HANDLE_CUDA_ERROR(cudaFree(state_));
-    }
+    ~Impl() { HANDLE_CUDA_ERROR(cudaFree(state_)); }
 
-    static void initialize()
-    {
-        HANDLE_ERROR(custatevecCreate(&handle_));
-    }
+    static void initialize() { HANDLE_ERROR(custatevecCreate(&handle_)); }
 
-    static void finalize()
-    {
-        HANDLE_ERROR(custatevecDestroy(handle_));
-    }
+    static void finalize() { HANDLE_ERROR(custatevecDestroy(handle_)); }
 
     std::vector<std::complex<double>> get_vector(UINT sample) const
     {
@@ -75,35 +66,42 @@ public:
         return std::complex(cuCreal(c), cuCimag(c));
     }
 
-    double re(UINT sample, UINT i)
-    {
-        cuDoubleComplex c;
-        HANDLE_CUDA_ERROR(cudaMemcpy(&c, state_ + (1ULL << n_) * sample + i,
-                                     sizeof(cuDoubleComplex), cudaMemcpyDeviceToHost));
-        return cuCreal(c);
-    }
+    double re(UINT sample, UINT i) { return amplitude(sample, i).real(); }
 
-    double im(UINT sample, UINT i)
-    {
-        cuDoubleComplex c;
-        HANDLE_CUDA_ERROR(cudaMemcpy(&c, state_ + (1ULL << n_) * sample + i,
-                                     sizeof(cuDoubleComplex), cudaMemcpyDeviceToHost));
-        return cuCimag(c);
-    }
+    double im(UINT sample, UINT i) { return amplitude(sample, i).imag(); }
 
-    double get_probability(UINT i)
-    {
-        throw std::runtime_error("Not implemented");
-    }
+    double get_probability(UINT i) { throw std::runtime_error("Not implemented"); }
 
-    double get_probability(UINT sample, UINT i)
-    {
-        throw std::runtime_error("Not implemented");
-    }
+    double get_probability(UINT sample, UINT i) { return std::norm(amplitude(sample, i)); }
 
     std::vector<double> get_probability_batched(UINT i) const
     {
-        throw std::runtime_error("Not implemented");
+        std::vector<double> probs(batch_size_);
+        std::vector<custatevecIndex_t> mask_bit_string(batch_size_);
+        std::vector<int32_t> mask_ordering(n_);
+        std::iota(mask_ordering.begin(), mask_ordering.end(), 0);
+
+        for (int i = 0; i < n_; i++) {
+            mask_ordering[i] = i;
+        }
+
+        HANDLE_ERROR(custatevecAbs2SumArrayBatched(
+            handle_,                // custatevecHandle_t handle
+            state_,                 // const void *batchedSv
+            CUDA_C_64F,             // cudaDataType_t svDataType
+            n_,                     // const uint32_t nIndexBits
+            batch_size_,            // const uint32_t nSVs
+            1ULL << n_,             // const custatevecIndex_t svStride
+            probs.data(),           // double *abs2sumArrays
+            1,                      // const custatevecIndex_t abs2sumArrayStride
+            nullptr,                // const int32_t *bitOrdering
+            0,                      // const uint32_t bitOrderingLen
+            mask_bit_string.data(), // const custatevecIndex_t *maskBitStrings
+            mask_ordering.data(),   // const int32_t *maskOrdering
+            n_                      // const uint32_t maskLen
+            ));
+
+        return probs;
     }
 
     UINT dim() const { return 1ULL << n_; }
@@ -133,11 +131,29 @@ public:
         //     CUSTATEVEC_MATRIX_LAYOUT_ROW, 0, 1, 1, 0, CUSTATEVEC_COMPUTE_64F,
         //     &workspace_size));
 
-        HANDLE_ERROR(
-            custatevecApplyMatrixBatched(handle_, state_, CUDA_C_64F, n_, batch_size_, 1ULL << n_,
-                                         CUSTATEVEC_MATRIX_MAP_TYPE_BROADCAST, nullptr, matrix,
-                                         CUDA_C_64F, CUSTATEVEC_MATRIX_LAYOUT_ROW, 0, 1, targets, 1,
-                                         nullptr, nullptr, 0, CUSTATEVEC_COMPUTE_64F, nullptr, 0));
+        HANDLE_ERROR(custatevecApplyMatrixBatched(
+            handle_,                              // custatevecHandle_t handle
+            state_,                               // void *batchedSv
+            CUDA_C_64F,                           // cudaDataType_t svDataType
+            n_,                                   // const uint32_t nIndexBits
+            batch_size_,                          // const uint32_t nSVs
+            1ULL << n_,                           // custatevecIndex_t svStride
+            CUSTATEVEC_MATRIX_MAP_TYPE_BROADCAST, // custatevecMatrixMapType_t mapType
+            nullptr,                              // const int32_t *matrixIndices
+            matrix,                               // const void *matrices
+            CUDA_C_64F,                           // cudaDataType_t matrixDataType
+            CUSTATEVEC_MATRIX_LAYOUT_ROW,         // custatevecMatrixLayout_t layout
+            0,                                    // const int32_t adjoint
+            1,                                    // const uint32_t nMatrices
+            targets,                              // const int32_t *targets
+            1,                                    // const uint32_t nTargets
+            nullptr,                              // const int32_t *controls
+            nullptr,                              // const int32_t *controlBitValues
+            0,                                    // const uint32_t nControls
+            CUSTATEVEC_COMPUTE_64F,               // custatevecComputeType_t computeType
+            nullptr,                              // void *extraWorkspace
+            0                                     // size_t extraWorkspaceSizeInBytes
+            ));
     }
 
     void act_two_qubit_gate(UINT control, UINT target, cuDoubleComplex matrix[4][4])
@@ -151,11 +167,29 @@ public:
         //     CUSTATEVEC_MATRIX_LAYOUT_ROW, 0, 1, 2, 0, CUSTATEVEC_COMPUTE_64F,
         //     &workspace_size));
 
-        HANDLE_ERROR(
-            custatevecApplyMatrixBatched(handle_, state_, CUDA_C_64F, n_, batch_size_, 1ULL << n_,
-                                         CUSTATEVEC_MATRIX_MAP_TYPE_BROADCAST, nullptr, matrix,
-                                         CUDA_C_64F, CUSTATEVEC_MATRIX_LAYOUT_ROW, 0, 1, targets, 2,
-                                         nullptr, nullptr, 0, CUSTATEVEC_COMPUTE_64F, nullptr, 0));
+        HANDLE_ERROR(custatevecApplyMatrixBatched(
+            handle_,                              // custatevecHandle_t handle
+            state_,                               // void *batchedSv
+            CUDA_C_64F,                           // cudaDataType_t svDataType
+            n_,                                   // const uint32_t nIndexBits
+            batch_size_,                          // const uint32_t nSVs
+            1ULL << n_,                           // custatevecIndex_t svStride
+            CUSTATEVEC_MATRIX_MAP_TYPE_BROADCAST, // custatevecMatrixMapType_t mapType
+            nullptr,                              // const int32_t *matrixIndices
+            matrix,                               // const void *matrices
+            CUDA_C_64F,                           // cudaDataType_t matrixDataType
+            CUSTATEVEC_MATRIX_LAYOUT_ROW,         // custatevecMatrixLayout_t layout
+            0,                                    // const int32_t adjoint
+            1,                                    // const uint32_t nMatrices
+            targets,                              // const int32_t *targets
+            2,                                    // const uint32_t nTargets
+            nullptr,                              // const int32_t *controls
+            nullptr,                              // const int32_t *controlBitValues
+            0,                                    // const uint32_t nControls
+            CUSTATEVEC_COMPUTE_64F,               // custatevecComputeType_t computeType
+            nullptr,                              // void *extraWorkspace
+            0                                     // size_t extraWorkspaceSizeInBytes
+            ));
     }
 
     void act_x_gate(UINT target)
@@ -584,7 +618,7 @@ void State::act_depolarizing_gate_2q(UINT control, UINT target, double prob)
 
 std::vector<std::complex<double>> State::observe(const Observable &obs) const
 {
-     return impl_->observe(obs);
+    return impl_->observe(obs);
 }
 
 void State::synchronize() { impl_->synchronize(); }
@@ -593,4 +627,4 @@ void initialize() { State::initialize(); }
 
 void finalize() { State::finalize(); }
 
-}
+} // namespace veqsim
