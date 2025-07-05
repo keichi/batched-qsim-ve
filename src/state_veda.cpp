@@ -55,7 +55,6 @@ public:
 
         VEDA(vedaModuleGetFunction(&get_vector_, mod_, "get_vector"));
         VEDA(vedaModuleGetFunction(&get_probability_average_, mod_, "get_probability_average"));
-        VEDA(vedaModuleGetFunction(&get_probability_single_, mod_, "get_probability_single"));
         VEDA(vedaModuleGetFunction(&get_probability_batched_, mod_, "get_probability_batched"));
         VEDA(vedaModuleGetFunction(&set_zero_state_, mod_, "set_zero_state"));
         VEDA(vedaModuleGetFunction(&act_single_qubit_gate_, mod_, "act_single_qubit_gate"));
@@ -108,14 +107,7 @@ public:
 
     std::complex<double> amplitude(UINT sample, UINT i)
     {
-        double re = 0.0, im = 0.0;
-
-        VEDA(vedaMemcpyDtoH(&re, state_re_ptr_ + (sample + i * batch_size_) * sizeof(double),
-                            sizeof(double)));
-        VEDA(vedaMemcpyDtoH(&im, state_im_ptr_ + (sample + i * batch_size_) * sizeof(double),
-                            sizeof(double)));
-
-        return std::complex(re, im);
+        return std::complex(re(sample, i), im(sample, i));
     }
 
     double re(UINT sample, UINT i)
@@ -159,22 +151,7 @@ public:
 
     double get_probability(UINT sample, UINT i)
     {
-        double prob = 0.0;
-
-        VEDAargs args;
-        VEDA(vedaArgsCreate(&args));
-        VEDA(vedaArgsSetStack(args, 0, &prob, VEDA_ARGS_INTENT_OUT, sizeof(double)));
-        VEDA(vedaArgsSetVPtr(args, 1, state_re_ptr_));
-        VEDA(vedaArgsSetVPtr(args, 2, state_im_ptr_));
-        VEDA(vedaArgsSetU64(args, 3, sample));
-        VEDA(vedaArgsSetU64(args, 4, i));
-        VEDA(vedaArgsSetU64(args, 5, batch_size_));
-        VEDA(vedaArgsSetU64(args, 6, n_));
-        VEDA(vedaLaunchKernel(get_probability_single_, 0, args));
-        VEDA(vedaArgsDestroy(args));
-        VEDA(vedaCtxSynchronize());
-
-        return prob;
+        return std::norm(amplitude(sample, i));
     }
 
     std::vector<double> get_probability_batched(UINT i) const
@@ -594,7 +571,6 @@ private:
 
     static VEDAfunction get_vector_;
     static VEDAfunction get_probability_average_;
-    static VEDAfunction get_probability_single_;
     static VEDAfunction get_probability_batched_;
     static VEDAfunction set_zero_state_;
     static VEDAfunction act_single_qubit_gate_;
@@ -617,7 +593,6 @@ VEDAmodule State::Impl::mod_;
 
 VEDAfunction State::Impl::get_vector_;
 VEDAfunction State::Impl::get_probability_average_;
-VEDAfunction State::Impl::get_probability_single_;
 VEDAfunction State::Impl::get_probability_batched_;
 VEDAfunction State::Impl::set_zero_state_;
 VEDAfunction State::Impl::act_single_qubit_gate_;
