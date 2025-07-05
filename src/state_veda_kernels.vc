@@ -62,7 +62,7 @@ void get_probability_average(double *prob, VEDAdeviceptr state_re_ptr, VEDAdevic
 }
 
 void get_probability_batched(VEDAdeviceptr state_re_ptr, VEDAdeviceptr state_im_ptr,
-                             VEDAdeviceptr prob_ptr, UINT sample, UINT i, UINT batch_size,
+                             VEDAdeviceptr prob_ptr, UINT i, UINT batch_size,
                              UINT n)
 {
     const double *state_re = NULL, *state_im = NULL;
